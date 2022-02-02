@@ -276,7 +276,7 @@ $(document).ready(function(){
 					}
 				});
 				for (const [key, value] of Object.entries(data['top'])) {
-					$('#top-countries').append('<li class="d-block mb-2 w-100 border-bottom pb-2 fw-bold">'+key+' <span class="badge bg-danger float-end">'+value+' clicks</span></li>');
+					$('#top-countries').append('<li class="d-block mb-2 w-100 border-bottom pb-2 fw-bold">'+key+' <span class="badge bg-secondary float-end">'+value+' clicks</span></li>');
 				}
 				window.addEventListener("resize", () => {
 					map.updateSize();
