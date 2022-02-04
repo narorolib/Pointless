@@ -188,7 +188,7 @@
     top: -2px;
     margin-left: 2px;
     padding: 0 3px 1px;
-    border: 1px solid #0078de;
+    border: 1px solid #1A237E;
     border-radius: 2px;
     -moz-border-radius: 2px;
     -webkit-border-radius: 2px;
@@ -203,7 +203,7 @@
     position: absolute;
     pointer-events: none;
     border-color: rgba(0, 120, 222, 0);
-    border-right-color: #0078de;
+    border-right-color: #1A237E;
     border-width: 4px;
     margin-top: -4px;
 }
