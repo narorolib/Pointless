@@ -142,7 +142,7 @@
 .pagination a {
     position: relative;
     display: block;
-    color: #7986CB;
+    color: #192129;
     padding: 5px 8px;
     text-decoration: none;
     background-color: #fff;
@@ -172,7 +172,7 @@
     text-align: right;
     padding-right: 5px;
     white-space: nowrap;
-    background-color: #7986CB;
+    background-color: #192129;
     transition: width .6s ease;
 }
 .progress-bar-striped {
@@ -724,11 +724,11 @@ body.dark .btn.btn-default:hover {
     background: #12181d;
 }
 body.dark .table>:not(:last-child)>:last-child>*,body.dark .table tbody,body.dark .table td,body.dark .table tfoot,body.dark .table th,body.dark .table thead,body.dark .table tr {
-    border-color: #222e3c !important;
+    border-color: #192129 !important;
     color: #fff
 }
 body.dark .input-group-navbar .btn, body.dark .input-group-navbar .form-control {
-    background: #222e3c;
+    background: #192129;
 }
 body.dark .input-select span.select2 span.select2-selection {
     border-color: #4e5e71!important;
@@ -750,7 +750,7 @@ body.dark .select2-container--default .select2-search--dropdown .select2-search_
     border-color: #4e5e71;
 }
 body.dark .datepicker-panel>ul>li {
-    background: #222e3c;
+    background: #192129;
 }
 
 body.dark .datepicker-dropdown {
@@ -758,7 +758,7 @@ body.dark .datepicker-dropdown {
     border: transparent;
 }
 body.dark .autocomplete-suggestions {
-    background: #222e3c;
+    background: #192129;
 }
 .datepicker-container{
     z-index: 2000 !important
@@ -790,7 +790,7 @@ body.dark .autocomplete-suggestions {
     color: #000 !important;
 }
 .pagination li.active a{
-    background: #7986CB;
+    background: #192129;
     color: #fff;
     border-color: transparent;
 }
