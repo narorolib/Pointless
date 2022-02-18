@@ -4,6 +4,7 @@ Chart.defaults.global.elements.point.radius = 0;
 Chart.defaults.global.elements.point.borderWidth = 0;
 Chart.defaults.global.elements.point.hoverBorderWidth = 0;
 Chart.defaults.global.elements.point.hoverRadius = 0;
+Chart.defaults.interaction.mode = 'nearest';
 
 let chart_css = window.getComputedStyle(document.body);
 
