@@ -3142,39 +3142,6 @@ a.btn.disabled,fieldset:disabled a.btn {
 	box-shadow: 0 0 0 0 rgba(0,0,0,.5)
 }
 
-
-.bg-gradient-primary {
-	background-image: linear-gradient(180deg,#5e72e4,#825ee4)
-}
-
-.bg-gradient-secondary {
-	background-image: linear-gradient(180deg,#627594,#a8b8d8)
-}
-
-.bg-gradient-success {
-	background-image: linear-gradient(180deg,#00C853,#2dcecc)
-}
-
-.bg-gradient-info {
-	background-image: linear-gradient(180deg,#1171ef,#80D8FF)
-}
-
-.bg-gradient-warning {
-	background-image: linear-gradient(180deg,#FFC400,#fbb140)
-}
-
-.bg-gradient-danger {
-	background-image: linear-gradient(180deg,#FF3D00,#f56036)
-}
-
-.bg-gradient-light {
-	background-image: linear-gradient(180deg,#ced4da,#ebeff4)
-}
-
-.bg-gradient-dark {
-	background-image: linear-gradient(180deg,#212229,#212122)
-}
-
 .bg-gradient-faded-primary {
 	background-image: radial-gradient(370px circle at 80% 50%,rgba(94,114,228,.6) 0,#324cdd 100%)
 }
@@ -14559,60 +14526,104 @@ a.bg-lighter:focus,a.bg-lighter:hover,button.bg-lighter:focus,button.bg-lighter:
 	background-color: #cbd3da!important
 }
 
-.bg-gradient-blue {
-	background: linear-gradient(35deg,#3D5AFE,#825ee4)!important
+.bg-gradient-primary {
+	background: linear-gradient(220deg,#3D5AFE,#825ee4)!important
 }
 
-.bg-gradient-indigo {
-	background: linear-gradient(35deg,#5603ad,#9d03ad)!important
+.bg-gradient-secondary {
+	background: linear-gradient(220deg,#fafbfc,#f4f4f7)!important
 }
 
-.bg-gradient-purple {
-	background: linear-gradient(35deg,#8965e0,#bc65e0)!important
+.bg-gradient-success {
+	background: linear-gradient(220deg,#00C853,#2dcecc)!important
 }
 
-.bg-gradient-pink {
-	background: linear-gradient(35deg,#f3a4b5,#f3b4a4)!important
+.bg-gradient-info {
+	background: linear-gradient(220deg,#80D8FF,#1171ef)!important
 }
 
-.bg-gradient-red {
-	background: linear-gradient(35deg,#FF3D00,#f56036)!important
+.bg-gradient-warning {
+	background: linear-gradient(220deg,#FFC400,#fbb140)!important
 }
 
-.bg-gradient-orange {
-	background: linear-gradient(35deg,#FFC400,#fbb140)!important
-}
-
-.bg-gradient-yellow {
-	background: linear-gradient(35deg,#ffd600,#beff00)!important
-}
-
-.bg-gradient-green {
-	background: linear-gradient(35deg,#00C853,#2dcecc)!important
-}
-
-.bg-gradient-teal {
-	background: linear-gradient(35deg,#80D8FF,#1171ef)!important
-}
-
-.bg-gradient-cyan {
-	background: linear-gradient(35deg,#2bffc6,#2be0ff)!important
-}
-
-.bg-gradient-gray {
-	background: linear-gradient(35deg,#78909C,#888aaa)!important
-}
-
-.bg-gradient-gray-dark {
-	background: linear-gradient(35deg,#212121,#44325d)!important
+.bg-gradient-danger {
+	background: linear-gradient(220deg,#FF3D00,#f56036)!important
 }
 
 .bg-gradient-light {
-	background: linear-gradient(35deg,#ced4da,#cecfda)!important
+	background: linear-gradient(220deg,#F5F5F5,#adaebd)!important
+}
+
+.bg-gradient-dark {
+	background: linear-gradient(220deg,#212122,#212229)!important
+}
+
+.bg-gradient-default {
+	background: linear-gradient(220deg,#172b4d,#1a174d)!important
+}
+
+.bg-gradient-neutral,.bg-gradient-white {
+	background: linear-gradient(220deg,#fff,#fff)!important
+}
+
+.bg-gradient-darker {
+	background: linear-gradient(220deg,#000,#000)!important
+}
+
+.bg-gradient-blue {
+	background: linear-gradient(220deg,#3D5AFE,#825ee4)!important
+}
+
+.bg-gradient-indigo {
+	background: linear-gradient(220deg,#5603ad,#9d03ad)!important
+}
+
+.bg-gradient-purple {
+	background: linear-gradient(220deg,#8965e0,#bc65e0)!important
+}
+
+.bg-gradient-pink {
+	background: linear-gradient(220deg,#f3a4b5,#f3b4a4)!important
+}
+
+.bg-gradient-red {
+	background: linear-gradient(220deg,#FF3D00,#f56036)!important
+}
+
+.bg-gradient-orange {
+	background: linear-gradient(220deg,#FFC400,#fbb140)!important
+}
+
+.bg-gradient-yellow {
+	background: linear-gradient(220deg,#ffd600,#beff00)!important
+}
+
+.bg-gradient-green {
+	background: linear-gradient(220deg,#00C853,#2dcecc)!important
+}
+
+.bg-gradient-teal {
+	background: linear-gradient(220deg,#80D8FF,#1171ef)!important
+}
+
+.bg-gradient-cyan {
+	background: linear-gradient(220deg,#2bffc6,#2be0ff)!important
+}
+
+.bg-gradient-gray {
+	background: linear-gradient(220deg,#78909C,#888aaa)!important
+}
+
+.bg-gradient-gray-dark {
+	background: linear-gradient(220deg,#212121,#44325d)!important
+}
+
+.bg-gradient-light {
+	background: linear-gradient(220deg,#ced4da,#cecfda)!important
 }
 
 .bg-gradient-lighter {
-	background: linear-gradient(35deg,#f6f6f6,#e9eaef)!important
+	background: linear-gradient(220deg,#f6f6f6,#e9eaef)!important
 }
 
 .bg-translucent-primary {
@@ -14741,50 +14752,6 @@ a.section-dark:focus,a.section-dark:hover,button.section-dark:focus,button.secti
 
 .section-darker,a.section-darker:focus,a.section-darker:hover,button.section-darker:focus,button.section-darker:hover {
 	background-color: #000!important
-}
-
-.bg-gradient-primary {
-	background: linear-gradient(35deg,#3D5AFE,#825ee4)!important
-}
-
-.bg-gradient-secondary {
-	background: linear-gradient(35deg,#fafbfc,#f4f4f7)!important
-}
-
-.bg-gradient-success {
-	background: linear-gradient(35deg,#00C853,#2dcecc)!important
-}
-
-.bg-gradient-info {
-	background: linear-gradient(35deg,#80D8FF,#1171ef)!important
-}
-
-.bg-gradient-warning {
-	background: linear-gradient(35deg,#FFC400,#fbb140)!important
-}
-
-.bg-gradient-danger {
-	background: linear-gradient(35deg,#FF3D00,#f56036)!important
-}
-
-.bg-gradient-light {
-	background: linear-gradient(35deg,#F5F5F5,#adaebd)!important
-}
-
-.bg-gradient-dark {
-	background: linear-gradient(35deg,#212122,#212229)!important
-}
-
-.bg-gradient-default {
-	background: linear-gradient(35deg,#172b4d,#1a174d)!important
-}
-
-.bg-gradient-neutral,.bg-gradient-white {
-	background: linear-gradient(35deg,#fff,#fff)!important
-}
-
-.bg-gradient-darker {
-	background: linear-gradient(35deg,#000,#000)!important
 }
 
 .fill-primary {
@@ -17443,11 +17410,11 @@ textarea[resize=horizontal] {
 	}
 
 	.navbar-collapse .navbar-toggler :first-child {
-		transform: rotate(135deg)
+		transform: rotate(1220deg)
 	}
 
 	.navbar-collapse .navbar-toggler :nth-child(2) {
-		transform: rotate(-135deg)
+		transform: rotate(-1220deg)
 	}
 
 	.navbar-collapse .navbar-collapse-header {
@@ -20451,47 +20418,47 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-facebook {
-	background: linear-gradient(35deg,#3b5999,#4d70ba)!important;
+	background: linear-gradient(220deg,#3b5999,#4d70ba)!important;
 	color: #fff
 }
 
 .btn-gradient-twitter {
-	background: linear-gradient(35deg,#1da1f2,#4db5f5)!important;
+	background: linear-gradient(220deg,#1da1f2,#4db5f5)!important;
 	color: #fff
 }
 
 .btn-gradient-instagram {
-	background: linear-gradient(35deg,#e4405f,#ea6d84)!important;
+	background: linear-gradient(220deg,#e4405f,#ea6d84)!important;
 	color: #fff
 }
 
 .btn-gradient-linkedin {
-	background: linear-gradient(35deg,#0077b5,#0099e8)!important;
+	background: linear-gradient(220deg,#0077b5,#0099e8)!important;
 	color: #fff
 }
 
 .btn-gradient-pinterest {
-	background: linear-gradient(35deg,#bd081c,#ee0a23)!important;
+	background: linear-gradient(220deg,#bd081c,#ee0a23)!important;
 	color: #fff
 }
 
 .btn-gradient-slack {
-	background: linear-gradient(35deg,#3aaf85,#55c79e)!important;
+	background: linear-gradient(220deg,#3aaf85,#55c79e)!important;
 	color: #fff
 }
 
 .btn-gradient-youtube {
-	background: linear-gradient(35deg,#cd201f,#e23e3d)!important;
+	background: linear-gradient(220deg,#cd201f,#e23e3d)!important;
 	color: #fff
 }
 
 .btn-gradient-dribbble {
-	background: linear-gradient(35deg,#ea4c89,#ef7aa7)!important;
+	background: linear-gradient(220deg,#ea4c89,#ef7aa7)!important;
 	color: #fff
 }
 
 .btn-gradient-vimeo {
-	background: linear-gradient(35deg,#1ab7ea,#49c6ee)!important;
+	background: linear-gradient(220deg,#1ab7ea,#49c6ee)!important;
 	color: #fff
 }
 
@@ -21083,7 +21050,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-primary {
-	background: linear-gradient(35deg,#3D5AFE,#8a98eb)!important;
+	background: linear-gradient(220deg,#3D5AFE,#8a98eb)!important;
 	border-left: none;
 	border-right: none;
 	color: #fff;
@@ -21091,7 +21058,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-primary:hover {
-	background: linear-gradient(35deg,#304FFE,#3D5AFE)!important;
+	background: linear-gradient(220deg,#304FFE,#3D5AFE)!important;
 	color: #fff
 }
 
@@ -21107,7 +21074,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-secondary:hover {
-	background: linear-gradient(35deg,#fafbfc,#fafbfc)!important;
+	background: linear-gradient(220deg,#fafbfc,#fafbfc)!important;
 	color: #fff
 }
 
@@ -21116,7 +21083,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-success {
-	background: linear-gradient(35deg,#00C853,#54daa1)!important;
+	background: linear-gradient(220deg,#00C853,#54daa1)!important;
 	border-left: none;
 	border-right: none;
 	color: #fff;
@@ -21124,7 +21091,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-success:hover {
-	background: linear-gradient(35deg,#24a46d,#00C853)!important;
+	background: linear-gradient(220deg,#24a46d,#00C853)!important;
 	color: #fff
 }
 
@@ -21133,7 +21100,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-info {
-	background: linear-gradient(35deg,#80D8FF,#41d7f2)!important;
+	background: linear-gradient(220deg,#80D8FF,#41d7f2)!important;
 	border-left: none;
 	border-right: none;
 	color: #fff;
@@ -21141,7 +21108,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-info:hover {
-	background: linear-gradient(35deg,#0da5c0,#80D8FF)!important;
+	background: linear-gradient(220deg,#0da5c0,#80D8FF)!important;
 	color: #fff
 }
 
@@ -21150,7 +21117,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-warning {
-	background: linear-gradient(35deg,#FFC400,#fc8c72)!important;
+	background: linear-gradient(220deg,#FFC400,#fc8c72)!important;
 	border-left: none;
 	border-right: none;
 	color: #fff;
@@ -21158,7 +21125,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-warning:hover {
-	background: linear-gradient(35deg,#fa3a0e,#FFC400)!important;
+	background: linear-gradient(220deg,#fa3a0e,#FFC400)!important;
 	color: #fff
 }
 
@@ -21167,7 +21134,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-danger {
-	background: linear-gradient(35deg,#FF3D00,#f76783)!important;
+	background: linear-gradient(220deg,#FF3D00,#f76783)!important;
 	border-left: none;
 	border-right: none;
 	color: #fff;
@@ -21175,7 +21142,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-danger:hover {
-	background: linear-gradient(35deg,#ec0c38,#FF3D00)!important;
+	background: linear-gradient(220deg,#ec0c38,#FF3D00)!important;
 	color: #fff
 }
 
@@ -21184,7 +21151,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-light {
-	background: linear-gradient(35deg,#F5F5F5,#c9cfd4)!important;
+	background: linear-gradient(220deg,#F5F5F5,#c9cfd4)!important;
 	border-left: none;
 	border-right: none;
 	color: #fff;
@@ -21192,7 +21159,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-light:hover {
-	background: linear-gradient(35deg,#919ca6,#F5F5F5)!important;
+	background: linear-gradient(220deg,#919ca6,#F5F5F5)!important;
 	color: #fff
 }
 
@@ -21201,7 +21168,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-dark {
-	background: linear-gradient(35deg,#212122,#383f45)!important;
+	background: linear-gradient(220deg,#212122,#383f45)!important;
 	border-left: none;
 	border-right: none;
 	color: #fff;
@@ -21209,7 +21176,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-dark:hover {
-	background: linear-gradient(35deg,#0a0c0d,#212122)!important;
+	background: linear-gradient(220deg,#0a0c0d,#212122)!important;
 	color: #fff
 }
 
@@ -21218,7 +21185,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-default {
-	background: linear-gradient(35deg,#172b4d,#234174)!important;
+	background: linear-gradient(220deg,#172b4d,#234174)!important;
 	border-left: none;
 	border-right: none;
 	color: #fff;
@@ -21226,7 +21193,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-default:hover {
-	background: linear-gradient(35deg,#0b1526,#172b4d)!important;
+	background: linear-gradient(220deg,#0b1526,#172b4d)!important;
 	color: #fff
 }
 
@@ -21235,7 +21202,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-white {
-	background: linear-gradient(35deg,#fff,#fff)!important;
+	background: linear-gradient(220deg,#fff,#fff)!important;
 	border-left: none;
 	border-right: none;
 	color: #fff;
@@ -21243,7 +21210,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-white:hover {
-	background: linear-gradient(35deg,#e6e6e6,#fff)!important;
+	background: linear-gradient(220deg,#e6e6e6,#fff)!important;
 	color: #fff
 }
 
@@ -21252,7 +21219,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-neutral {
-	background: linear-gradient(35deg,#fff,#fff)!important;
+	background: linear-gradient(220deg,#fff,#fff)!important;
 	border-left: none;
 	border-right: none;
 	color: #fff;
@@ -21260,7 +21227,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-neutral:hover {
-	background: linear-gradient(35deg,#e6e6e6,#fff)!important;
+	background: linear-gradient(220deg,#e6e6e6,#fff)!important;
 	color: #fff
 }
 
@@ -21275,7 +21242,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-darker,.btn-gradient-darker:hover {
-	background: linear-gradient(35deg,#000,#1a1a1a)!important;
+	background: linear-gradient(220deg,#000,#1a1a1a)!important;
 	color: #fff
 }
 
@@ -21284,7 +21251,7 @@ html:not([dir=rtl]) .noUi-horizontal .noUi-handle {
 }
 
 .btn-gradient-secondary {
-	background: linear-gradient(35deg,#fafbfc,#fff)!important;
+	background: linear-gradient(220deg,#fafbfc,#fff)!important;
 	color: #172b4d
 }
 
