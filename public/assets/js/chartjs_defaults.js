@@ -22,7 +22,7 @@ let chart_options = {
         }
     },
     tooltips: {
-        mode: 'x',
+        mode: 'index',
         intersect: false,
         xPadding: 12,
         yPadding: 12,
