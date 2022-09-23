@@ -693,6 +693,71 @@
   }(jQuery, window, 'sortable');
 
 $(document).ready(function(){
+    var inplatforms = [];
+    $('[data-trigger=addsocial]').click(function(e){
+        e.preventDefault();
+        let platform = $(this).parents('.card').find('select[name=platform]').val();
+        let link = $(this).parents('.card').find('input[name=socialink]').val();
+        let regex = /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;
+
+        if(link.length < 5 || !regex.test(link)){
+          $.notify({
+            message: $(this).data('error')
+          },{
+              type: 'danger',
+              placement: {
+                  from: "top",
+                  align: "right"
+              },
+          });
+          return false;
+        }
+
+        if(inplatforms.includes(platform)){
+          $.notify({
+            message: $(this).data('error-alt')
+          },{
+              type: 'danger',
+              placement: {
+                  from: "top",
+                  align: "right"
+              },
+          });
+          return false;
+        }
+
+        inplatforms.push(platform);
+        let html =  '<div class="input-group mb-3 border rounded p-2">'+         
+                      '<div class="input-group-text bg-white"><i class="fab fa-'+platform+'"></i></div>'+
+                      '<input type="text" class="form-control p-2" name="social['+platform+']" placeholder="https://" value="'+link+'">'+
+                    '</div>';
+
+        $("#sociallinksholder").removeClass('d-none').append(html);
+    });
+    $(document).on('click', '[data-trigger=removesocial]', function(e){
+      e.preventDefault();
+      $(this).parents('.input-group').fadeOut('medium', function(){
+        $(this).remove();
+      })
+    });
+    $('[data-trigger=bgtype]').click(function(){
+      let val = $(this).attr('href').replace('#', '');
+      $('input[name=mode]').val(val);
+      $('input[name=theme]').val('');
+      $('#preview .card').removeClass(function (i, classname) {
+        return (classname.match (/(^|\s)biobg_\S+/g) || []).join(' ');
+      });
+    });
+    
+    $('input#fonts').fontselect({
+      googleFonts: ['Alegreya+Sans', 'BioRhyme', 'Changa', 'Coda', 'Cormorant', 'DM+Sans', 'Eczar', 'Fira+Sans', 'Inkut+Antiqua','Poppins','Karla','Montserrat','Proza+Libre','Open+Sans', 'Inter', 'Pacifico', 'Press+Start+2P', 'Roboto', 'Source+Sans+Pro', 'Space+Mono', 'Syne', 'Work+Sans'],
+    }).on('change', function(){
+      var font = this.value.replace(/\+/g, ' ');
+      font = font.split(':');
+      var fontFamily = font[0];
+      var fontWeight = font[1] || 400;
+      $('#preview').css({fontFamily:"'"+fontFamily+"'", fontWeight:fontWeight});
+   });
 
     $('#linkcontent').sortable({
         containerSelector: "#linkcontent",
@@ -718,6 +783,14 @@ $(document).ready(function(){
                 lebefore.after(lafter);
             else
                 lebefore.before(lafter);
+
+            var text = $item.find('textarea').attr('id');
+            if (typeof text != 'undefined') {
+                CKEDITOR.instances[text].destroy();
+                CKEDITOR.replace(text, {
+                  height: 100
+                });
+            }                
         }
     });
 
@@ -726,36 +799,48 @@ $(document).ready(function(){
         let callback = 'fn'+$(this).data('type');
         $('.alt-error').remove();
         if(callback !== undefined){
-			let html = window[callback]($(this));            
-            if(html === false) return;
-            $("#linkcontent").append(html);
+		  	    let response = window[callback]($(this));            
+            if(response === false) return;
             $("#contentModal div").removeClass('show');
             $("#options").addClass('show');
             $("#contentModal .btn-close").click();            
-		} 
+        } 
     });
-
     $(document).on('click','[data-trigger=removeCard]', function(e){
+      e.preventDefault();
+      let id = $(this).parents('.widget').data('id');
+      $('a[data-trigger=confirmremove]').data('id', id);      
+    });
+    $(document).on('click','[data-trigger=confirmremove]', function(e){
         e.preventDefault();
-        let id = $(this).parent('.card').data('id');
-        $(this).parent('.card').remove();
-        $("#preview").find('#'+id).remove();
+        let id = $(this).data('id');
+        $('[data-id='+id+']').remove();
+        $("#preview").find('#'+id).parent('.item').remove();
+        $("#removecard .btn-close").click();       
     });
     
-    changeTheme("#fffff", "#fffff", "#fffff", "#000000", "#ffffff", "#0000000");
+    changeTheme("#ffffff", "#ffffff", "#ffffff", "#000000", "#ffffff", "#0000000");
 
     $("#dividercolor").spectrum({
-      color: "#fff",
+      color: "#000000",
       showInput: true,
       preferredFormat: "hex"
     });	
 
-    $("[data-trigger=changeTheme]").click(function(e){
-        e.preventDefault();
+    $("[data-trigger=changetheme]").click(function(){
+        $('input[name=mode]').val('gradient');
+        $("#gradient").collapse('show');
+        $('a[href*=gradient]').addClass('active');
+        $('input[name=theme]').val('');
     });
-    $("input[name=name]").keyup(function(){
+
+    $("[data-trigger=customtheme]").click(function(){
+      $('input[name=theme]').val($(this).data('theme'));
+      $('input[name=mode]').val('custom');
+    });
+    $("#biopage-name").keyup(function(){
         let val = $(this).val();
-        $("#preview h3 > span").text(val);
+        $("#preview h3#bio-title > span").text(val);
     });
 
     $('#avatar').change(function(){
@@ -763,8 +848,16 @@ $(document).ready(function(){
 
         for (var i = 0, f; f = files[i]; i++) {
     
-          // Only process image files.
-          if (!f.type.match('image.*')) {
+          if (!["image/jpeg", "image/jpg", "image/png"].includes(f.type) || f.size > 500*1024) {
+            $.notify({
+              message: $('#avatar').data('error')
+            },{
+                type: 'danger',
+                placement: {
+                    from: "top",
+                    align: "right"
+                },
+            });
             continue;
           }
     
@@ -775,10 +868,18 @@ $(document).ready(function(){
               $('#useravatar, #preview #userimage').attr('src', e.target.result);
             }
           })(f);
-    
-          // Read in the image file as a data URL.
+              
           reader.readAsDataURL(f);
         }
+    });
+
+    $("#avatarenabled").change(function(){
+      $('#preview #userimage').toggle();
+    });
+
+    $("[data-trigger=uploadavatar]").click(function(e){
+      e.preventDefault();
+      $("#avatar").click();
     });
 
     $('#bgimage').change(function(){
@@ -786,8 +887,16 @@ $(document).ready(function(){
 
       for (var i = 0, f; f = files[i]; i++) {
   
-        // Only process image files.
-        if (!f.type.match('image.*')) {
+        if (!["image/jpeg", "image/jpg", "image/png", "image/svg+xml"].includes(f.type) || f.size > 1024*1024) {
+          $.notify({
+            message: $('#bgimage').data('error')
+          },{
+              type: 'danger',
+              placement: {
+                  from: "top",
+                  align: "right"
+              },
+          });
           continue;
         }
   
@@ -798,8 +907,7 @@ $(document).ready(function(){
             $('#preview .card').attr('style', 'background-image:url('+e.target.result+');background-size:cover;');
           }
         })(f);
-  
-        // Read in the image file as a data URL.
+          
         reader.readAsDataURL(f);
       }
     });
@@ -808,7 +916,6 @@ $(document).ready(function(){
       var id = $(this).data('for');
       for (var i = 0, f; f = files[i]; i++) {
 
-        // Only process image files.
         if (!f.type.match('image.*')) {
           continue;
         }
@@ -820,13 +927,12 @@ $(document).ready(function(){
             $('#preview').find('#'+id).html('<img src="'+e.target.result+'" class="img-fluid rounded">');
           }
         })(f);
-
-        // Read in the image file as a data URL.
+        
         reader.readAsDataURL(f);
       }
-  });
+    });
 
-    $('form').submit(function(e){
+    $(document).on('submit', 'form', function(e){
         e.preventDefault();
         let action = $(this).attr('action');
         let valid = true;
@@ -856,6 +962,10 @@ $(document).ready(function(){
         
         if(valid == false) return false;
         let data = new FormData($(this)[0]);
+        let text = $(this).find('button[type=submit]').text();
+        for(var instanceName in CKEDITOR.instances) 
+          CKEDITOR.instances[instanceName].updateElement();
+          
         $.ajax({
             type: 'POST',
             url: action,
@@ -863,11 +973,11 @@ $(document).ready(function(){
       			contentType: false,
       			processData: false,            
             dataType: 'json',
-            beforeSend: function(){
-                $('body').append('<div class="preloader"><div class="spinner-border text-primary" role="status"><span class="sr-only">Loading...</span></div></div>');
+            beforeSend: function(){                
+                $('form').find('button[type=submit]').attr('disabled','disabled').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
             },
             complete: function(){
-                $('.preloader').remove();
+                $('form').find('button[type=submit]').text(text).removeAttr('disabled');
             },
             success: function(response){
                 $('input[name=_token]').val(response.token);
@@ -901,35 +1011,116 @@ $(document).ready(function(){
     });
 });
 
+$("[data-trigger=color]").each(function(){
+
+  var bg = '#000000';
+
+  if($(this).data('default')) bg = $(this).data('default');
+
+  $(this).spectrum({
+    color: bg,
+    showInput: true,
+    preferredFormat: "hex",
+  });	
+
+});
+
+$('select#buttonstyle').change(function(){
+  if($(this).val() == 'trec'){
+    
+    $(".btn-custom").removeClass('rounded-pill').addClass('rounded').addClass('btn-transparent').addClass('btn-border').css('background-color', 'transparent').css('border-color', $('#buttoncolor').val());
+
+  } else if($(this).val() == 'tro') {
+    
+    $(".btn-custom").removeClass('rounded').addClass('rounded-pill').addClass('btn-transparent').addClass('btn-border').css('background-color', 'transparent').css('border-color', $('#buttoncolor').val());
+
+  } else if($(this).val() == 'rounded') {
+    
+    $(".btn-custom").removeClass('rounded').removeClass('btn-transparent').addClass('rounded-pill').removeClass('btn-border').css('background-color', $('#buttoncolor').val()).css('border', '0');
+
+  } else {
+    $(".btn-custom").removeClass('rounded-pill').removeClass('btn-transparent').addClass('rounded').removeClass('btn-border').css('background-color', $('#buttoncolor').val()).css('border', '0');
+  }
+});
+
+function btnColor(element, color, e){
+  let style = $('select#buttonstyle').val();
+  if(style == 'trec' || style == 'tro') return borderColor(element, color, e);
+  return bgColor(element, color, e);
+}
 function bgColor(element, color, e) {
-    $(element).css("background-color", (color ? color.toHexString() : ""));
-    e.val(color.toHexString());
+  $(element).css("background-color", (color ? color.toHexString() : ""));
+  e.val(color.toHexString());
 }
 
 function Color(element, color, e) {
     $(element).css("color", (color ? color.toHexString() : ""));
     e.val(color.toHexString());
 }	
-
+function borderColor(element, color, e){
+  $(element).css("border-top-color", (color ? color.toHexString() : ""));
+  e.val(color.toHexString())
+}
 function gradient(element, color, e) {
     e.val(color.toHexString());
     let start = $('#bgst').val();
     let stop = $('#bgsp').val();
-    $(element).attr("style", 'background:linear-gradient(0deg, '+start+' 0%, '+stop+' 100%);');
+    $(element).attr("style", 'background:linear-gradient(135deg, '+start+' 0%, '+stop+' 100%);');
 }	
 
+function customTheme(classname, buttoncolor, buttontextcolor, textcolor){
+  $('#preview .btn-custom').not('.btn-transparent').css("background-color", buttoncolor);
+  $("#buttoncolor").val(buttoncolor);
+  $("#preview .btn-custom").not('.btn-transparent').css("color", buttontextcolor);
+  $("#buttontextcolor").val(buttontextcolor);
+  $("#preview, #preview h3 > span, #preview p, #preview #bio-tag").css("color", textcolor);
+  $("#textcolor").val(textcolor);
+  $('#preview .card').removeClass(function (i, classname) {
+      return (classname.match (/(^|\s)biobg_\S+/g) || []).join(' ');
+  });
+  $("#preview .card").addClass(classname);
+
+  $("#buttontextcolor").spectrum({
+      color: buttontextcolor,
+      showInput: true,
+      preferredFormat: "hex",                
+      move: function (color) { Color("#preview .btn-custom", color, $(this)); },
+      hide: function (color) { Color("#preview .btn-custom", color, $(this)); }   
+  });     
+  $("#buttoncolor").spectrum({
+      color: buttoncolor,
+      showInput: true,        
+      preferredFormat: "hex",                
+      move: function (color) { btnColor("#preview .btn-custom", color, $(this)); },
+      hide: function (color) { btnColor("#preview .btn-custom", color, $(this)); }   
+  });
+  $("#textcolor").spectrum({
+      color: textcolor,
+      showInput: true,
+      preferredFormat: "hex",        
+      move: function (color) { Color("#preview, #preview h3 > span, #preview p", color, $(this)); },
+      hide: function (color) { Color("#preview, #preview h3 > span  #preview p", color, $(this)); }           
+  });  
+}
+
 function changeTheme(bg, bgst, bgsp, buttoncolor, buttontextcolor, textcolor){
+    $('#preview .card').removeClass(function (i, classname) {
+        return (classname.match (/(^|\s)biobg_\S+/g) || []).join(' ');
+    });
     $('#preview .card').css("background-color", bg);
     $("#bg").val(bg);
-    $('#preview .btn-custom').css("background-color", buttoncolor);
+    $('#preview .btn-custom').not('.btn-transparent').css("background-color", buttoncolor);
     $("#buttoncolor").val(buttoncolor);
-    $("#preview .btn-custom").css("color", buttontextcolor);
+    $("#preview .btn-custom").not('.btn-transparent').css("color", buttontextcolor);
     $("#buttontextcolor").val(buttontextcolor);
-    $("#preview, #preview h3 > span, #preview p").css("color", textcolor);
+    $("#preview, #preview h3 > span, #preview p, #preview #bio-tag").css("color", textcolor);
     $("#textcolor").val(textcolor);
-    $("#preview .card").attr("style", 'background:linear-gradient(0deg, '+bgst+' 0%, '+bgsp+' 100%);');
+    $("#preview .card").attr("style", 'background:linear-gradient(135deg, '+bgst+' 0%, '+bgsp+' 100%);');
     $("#bgst").val(bgst);
     $("#bgsp").val(bgsp);
+
+    $('input[name=color]').data('default', buttontextcolor).val(buttontextcolor);
+    $('input[name=bg]').data('default', buttoncolor).val(buttoncolor);
 
     $("#bg").spectrum({
         color: bg,
@@ -961,11 +1152,10 @@ function changeTheme(bg, bgst, bgsp, buttoncolor, buttontextcolor, textcolor){
     });     
     $("#buttoncolor").spectrum({
         color: buttoncolor,
-        showInput: true,
-        allowEmpty: true,
+        showInput: true,        
         preferredFormat: "hex",                
-        move: function (color) { bgColor("#preview .btn-custom", color, $(this)); },
-        hide: function (color) { bgColor("#preview .btn-custom", color, $(this)); }   
+        move: function (color) { btnColor("#preview .btn-custom", color, $(this)); },
+        hide: function (color) { btnColor("#preview .btn-custom", color, $(this)); }   
     });
     $("#textcolor").spectrum({
         color: textcolor,
@@ -975,79 +1165,163 @@ function changeTheme(bg, bgst, bgsp, buttoncolor, buttontextcolor, textcolor){
         hide: function (color) { Color("#preview, #preview h3 > span  #preview p", color, $(this)); }           
     });    
 }
-function fntext(el, content = null){
+function fntext(el, content = null, did = null){
 
     if(content){
         var text = content['text'];
     } else {
         let eltext = el.parent("#modal-text").find('textarea[name=content]');
-             
-        var text = eltext.val();
+        var text = texteditor.getData();
         eltext.val('');
     }
     
-    let did = (Math.random() + 1).toString(36).substring(2);
-    let html = '<div class="card p-2 shadow-none border position-relative sortable" data-id="'+did+'">'+
-                    '<a class="position-absolute top-0 end-0 me-2" data-trigger="removeCard" href=""><i class="fa fa-times-circle"></i></a>'+
-                    '<h5><i class="fa fa-align-justify handle mr-2"></i> '+el.parent(".collapse").data('name')+'</h5>'+
-                    '<div class="row mt-2">'+
-                        '<div class="col-md-6">'+
+    if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+    let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                  '<div class="d-flex align-items-center">'+
+                    '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                    '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                  '</div>'+
+                  '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                    '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                    '<div class="row mt-2" id="'+did+'Container">'+
+                        '<div class="col-md-12">'+
                             '<div class="form-group">'+
-                                '<input type="hidden" name="data['+slug(text)+'][type]" value="text">'+
-                                '<textarea class="form-control p-2" name="data['+slug(text)+'][text]" placeholder="e.g. some description here">'+text+'</textarea>'+
+                                '<label class="form-label">'+biolang.text+'</label>'+
+                                '<input type="hidden" name="data['+slug(did)+'][type]" value="text">'+
+                                '<textarea id="'+did+'_editor" class="form-control p-2" name="data['+slug(did)+'][text]" placeholder="e.g. some description here">'+text+'</textarea>'+
                             '</div>'+
                         '</div>'+
                     '</div>'+
+                  '</div>';
                 '</div>';
 
             $('#content').append('<div class="item"><p id="'+did+'">'+text+'</p></div>');
-
-        return html;
+            $("#linkcontent").append(html);  
+            CKEDITOR.replace(did+'_editor', {
+              height: 100
+            });
 }
-function fnlink(el, content = null){
-    let regex = /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i;
+function fnlink(el, content = null, did = null){
+
+    let bg = $('#buttoncolor').val();
+    let color = $('#buttontextcolor').val();
+    let style = $('#buttonstyle').val();
 
     if(content){
         var text = content['text'];
+        var icon = content['icon'];
+        var animation = content['animation'];
         var link = content['link'];
+        var urlid = content['urlid'];
+        var clicks = content['clicks'];
     } else {
         let eltext = el.parent("#modal-links").find('input[name=text]');
-        let ellink = el.parent("#modal-links").find('input[name=link]');
+        let elicon = el.parent("#modal-links").find('input[name=icon]');
+        let elanimation = el.parent("#modal-links").find('select[name=animation]');
+        let ellink = el.parent("#modal-links").find('input[name=link]');      
     
-        if(!regex.test(ellink.val())){
+        if(ellink.val() == ''){
             ellink.after('<p class="alt-error text-danger mt-2">'+ellink.data('error')+'</p>');
             return false;
         }                
         var text = eltext.val();
         var link = ellink.val();
+        var animation = elanimation.val();
+        var icon = elicon.val();
+        var urlid = null;
+        var clicks = null;
         ellink.val('');
         eltext.val('');        
     }
     
-    let did = (Math.random() + 1).toString(36).substring(2);
-    let html = '<div class="card p-2 shadow-none border position-relative sortable" data-id="'+did+'">'+
-                    '<a class="position-absolute top-0 end-0 me-2" data-trigger="removeCard" href=""><i class="fa fa-times-circle"></i></a>'+
-                    '<h5><i class="fa fa-align-justify handle mr-2"></i> '+el.parent(".collapse").data('name')+'</h5>'+
-                    '<div class="row mt-2">'+
+    if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+    let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                  '<div class="d-flex align-items-center">'+
+                    '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
+                    ''+(clicks !== null ? '<span class="text-muted"><i class="fa fa-mouse me-1"></i> '+clicks+' '+(urlid !== null ? '<a href="'+appurl+'/'+urlid+'/stats" class="ms-1 text-muted" target="_blank">('+biolang.stats+')</a>' : '')+' </span>' : '')+''+
+                    '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                  '</div>'+
+                  '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                    '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                    '<div class="" id="'+did+'Container">'+
+                      '<div class="row mt-2">'+
                         '<div class="col-md-6">'+
                             '<div class="form-group">'+
-                                '<input type="text" class="form-control p-2" name="data['+slug(text)+'][text]" value="'+text+'" placeholder="e.g. My Site">'+
+                                '<label class="form-label">'+biolang.icon+'</label>'+
+                                '<input type="text" class="form-control p-2 icon" name="data['+slug(did)+'][icon]" value="'+icon+'" id="'+did+'_icon" placeholder="e.g. fab fa-twitter">'+
                             '</div>'+
                         '</div>'+
                         '<div class="col-md-6">'+
                             '<div class="form-group">'+
-                                '<input type="hidden" name="data['+slug(text)+'][type]" value="link">'+
-                                '<input type="text" class="form-control p-2" name="data['+slug(text)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
+                                '<label class="form-label">'+biolang.text+'</label>'+
+                                '<input type="text" class="form-control p-2 text" name="data['+slug(did)+'][text]" value="'+text+'" placeholder="e.g. My Site">'+
                             '</div>'+
                         '</div>'+
+                      '</div>'+
+                      '<div class="row mt-2">'+
+                        '<div class="col-md-12">'+
+                            '<div class="form-group">'+
+                                '<label class="form-label">'+biolang.link+'</label>'+
+                                '<input type="hidden" name="data['+slug(did)+'][type]" value="link">'+
+                                '<input type="text" class="form-control p-2" name="data['+slug(did)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
+                            '</div>'+
+                        '</div>'+                        
+                      '</div>'+
+                      '<div class="row mt-2">'+
+                        '<div class="col-md-4">'+
+                          '<div class="form-group">'+
+                            '<label class="form-label">'+biolang.animation+'</label>'+
+                            '<select name="data['+slug(did)+'][animation]" class="animation form-select mb-2 p-2">'+
+                              '<option value="none" '+(animation == 'none' ? 'selected':'')+'>'+biolang.none+'</option>'+  
+                              '<option value="shake" '+(animation == 'shake' ? 'selected':'')+'>'+biolang.shake+'</option>'+  
+                              '<option value="scale" '+(animation == 'scale' ? 'selected':'')+'>'+biolang.scale+'</option>'+  
+                              '<option value="jello" '+(animation == 'jello' ? 'selected':'')+'>'+biolang.jello+'</option>'+  
+                              '<option value="vibrate" '+(animation == 'vibrate' ? 'selected':'')+'>'+biolang.vibrate+'</option>'+  
+                              '<option value="wobble" '+(animation == 'wobble' ? 'selected':'')+'>'+biolang.wobble+'</option>'+  
+                            '</select>'+
+                          '</div>'+
+                        '</div>'+ 
+                      '</div>'+
+                    '</div>'+
                     '</div>'+
                 '</div>';
+            '</div>';
+            if(style == 'trec'){
+              $('#content').append('<div class="item"><a href="#" id="'+did+'" class="animate_'+animation+' btn-border btn w-100 text-start btn-custom btn-transparent btn-link rounded mb-2 p-2 d-flex" style="background:transparent!important;border-color:'+bg+';color:'+color+';">'+(icon != '' ? '<i class="'+icon+'" style="font-size:15px"></i>' : '')+' <span class="align-top ms-auto me-auto">'+text+'</span></a></div>');
+            } else if(style == 'tro') {
+              $('#content').append('<div class="item"><a href="#" id="'+did+'" class="animate_'+animation+' btn-border btn w-100 text-start btn-custom btn-transparent btn-link mb-2 p-2 d-flex rounded-pill" style="background:transparent!important;border-color:'+bg+';color:'+color+';">'+(icon != '' ? '<i class="'+icon+'" style="font-size:15px"></i>' : '')+' <span class="align-top ms-auto me-auto">'+text+'</span></a></div>');
+            } else if(style == 'rounded') {
+              $('#content').append('<div class="item"><a href="#" id="'+did+'" class="animate_'+animation+' btn w-100 text-start btn-custom btn-link mb-2 p-2 d-flex rounded-pill" style="background:'+bg+'!important;color:'+color+';">'+(icon != '' ? '<i class="'+icon+'" style="font-size:15px"></i>' : '')+' <span class="align-top ms-auto me-auto">'+text+'</span></a></div>');
+            } else {
+              $('#content').append('<div class="item"><a href="#" id="'+did+'" class="animate_'+animation+' btn w-100 rounded text-start btn-custom btn-link mb-2 p-2 d-flex" style="background:'+bg+'!important;color:'+color+'">'+(icon != '' ? '<i class="'+icon+'" style="font-size:15px"></i>' : '')+' <span class="align-top ms-auto me-auto">'+text+'</span></a></div>');
+            }
 
-            $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 btn-custom mb-2 p-2">'+text+'</a></div>');
+            $("#linkcontent").append(html);  
+            
+            $('[data-id='+did+'] select.animation').change(function(){
 
-        return html;
+              $("#"+did).removeClass(function (i, classname) {
+                  return (classname.match (/(^|\s)animate_\S+/g) || []).join(' ');
+              });
+
+              $("#"+did).addClass('animate_'+$(this).val());
+            });
+            $(document).on('keyup', '[data-id='+did+'] .text', function(){
+                $("#"+did+" span").text($(this).val());
+            });  
+            
+            $(document).on('blur iconpickerUpdated', '[data-id='+did+'] .icon', function(){
+              $("#"+did).html(($(this).val() != '' ? '<i class="'+$(this).val()+'" style="font-size:21px;"></i>' : '')+' <span class="align-top ms-auto me-auto">'+$('[data-id='+did+'] .text').val()+'</span>');
+            }); 
+
+            $('#'+did+'_icon').iconpicker();
+            $("#"+did).addClass('animate_'+animation);
 }
-function fnyoutube(el, content = null){
+function fnyoutube(el, content = null, did = null){
 
     let regex = /http(?:s?):\/\/(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([\w\-\_]*)(&(amp;)?‌​[\w\?‌​=]*)?/i;
 
@@ -1064,25 +1338,38 @@ function fnyoutube(el, content = null){
         ellink.val('');
     }
     
-    let did = (Math.random() + 1).toString(36).substring(2);
-    let html = '<div class="card p-2 shadow-none border position-relative sortable" data-id="'+did+'">'+
-                    '<a class="position-absolute top-0 end-0 me-2" data-trigger="removeCard" href=""><i class="fa fa-times-circle"></i></a>'+
-                    '<h5><i class="fa fa-align-justify handle mr-2"></i> '+el.parent(".collapse").data('name')+'</h5>'+
-                    '<div class="row mt-2">'+                        
-                        '<div class="col-md-6">'+
+    if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+    let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                  '<div class="d-flex align-items-center">'+
+                    '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                    '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                  '</div>'+
+                  '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                    '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                    '<div class="row mt-2" id="'+did+'Container">'+      
+                        '<div class="col-md-12">'+
                             '<div class="form-group">'+
-                                '<input type="hidden" name="data['+slug(link)+'][type]" value="youtube">'+
-                                '<input type="text" class="form-control p-2" name="data['+slug(link)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
+                                '<label class="form-label">'+biolang.link+'</label>'+
+                                '<input type="hidden" name="data['+slug(did)+'][type]" value="youtube">'+
+                                '<input type="text" class="form-control p-2" name="data['+slug(did)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
                             '</div>'+
                         '</div>'+
                     '</div>'+
+                  '</div>';  
                 '</div>';  
                 
-        let id = link.match(regex);
-        $('#content').append('<div class="item"><iframe id="'+did+'" class="rounded mb-2" src="https://www.youtube.com/embed/'+id[1]+'" width="100%" height="200"></iframe></div>');
-    return html;
+    let id = link.match(regex);
+    $('#content').append('<div class="item"><iframe id="'+did+'" class="rounded mb-2" src="https://www.youtube.com/embed/'+id[1]+'" width="100%" height="200"></iframe></div>');
+    $("#linkcontent").append(html);   
 }
-function fnwhatsapp(el, content = null){
+function fnwhatsapp(el, content = null, did = null){
+
+    let bg = $('#buttoncolor').val();
+    let color = $('#buttontextcolor').val();
+    let style = $('#buttonstyle').val();
+    
     if(content){
         var text = content['label'];
         var link = content['phone'];
@@ -1100,29 +1387,46 @@ function fnwhatsapp(el, content = null){
     }
 
     
-    let did = (Math.random() + 1).toString(36).substring(2);
-    let html = '<div class="card p-2 shadow-none border position-relative sortable" data-id="'+did+'">'+
-                    '<a class="position-absolute top-0 end-0 me-2" data-trigger="removeCard" href=""><i class="fa fa-times-circle"></i></a>'+
-                    '<h5><i class="fa fa-align-justify handle mr-2"></i> '+el.parent(".collapse").data('name')+'</h5>'+
-                    '<div class="row mt-2">'+                           
+    if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+    let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                  '<div class="d-flex align-items-center">'+
+                    '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                    '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                  '</div>'+
+                  '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                    '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                    '<div class="row mt-2" id="'+did+'Container">'+         
                         '<div class="col-md-6">'+
                             '<div class="form-group">'+
-                                '<input type="hidden" name="data['+slug(link)+'][type]" value="whatsapp">'+
-                                '<input type="text" class="form-control p-2" name="data['+slug(link)+'][phone]" value="'+link+'" placeholder="">'+
+                                '<label class="form-label">'+biolang.phone+'</label>'+          
+                                '<input type="hidden" name="data['+slug(did)+'][type]" value="whatsapp">'+
+                                '<input type="text" class="form-control p-2" name="data['+slug(did)+'][phone]" value="'+link+'" placeholder="">'+
                             '</div>'+
                         '</div>'+
                         '<div class="col-md-6">'+
                             '<div class="form-group">'+
-                                '<input type="text" class="form-control p-2" name="data['+slug(link)+'][label]" value="'+text+'" placeholder="">'+
+                              '<label class="form-label">'+biolang.link+'</label>'+
+                                '<input type="text" class="form-control p-2" name="data['+slug(did)+'][label]" value="'+text+'" placeholder="">'+
                             '</div>'+
                         '</div>'+
                     '</div>'+
+                  '</div>'+
                 '</div>';    
 
-        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 btn-custom mb-2 p-2">'+text+'</a></div>');
-    return html;
+    if(style == 'trec'){
+      $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn-border btn w-100 btn-custom btn-transparent btn-link rounded mb-2 p-2" style="background:transparent!important;border-color:'+bg+';color:'+color+';">'+text+'</a></div>');
+    } else if(style == 'tro') {
+      $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn-border btn w-100 btn-custom btn-transparent btn-link mb-2 p-2 rounded-pill" style="background:transparent!important;border-color:'+bg+';color:'+color+';">'+text+'</a></div>');      
+    } else if(style == 'rounded') {
+      $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 btn-custom btn-link mb-2 p-2 rounded-pill" style="background:'+bg+'!important;color:'+color+';">'+text+'</a></div>');
+    } else {
+      $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 rounded btn-custom btn-link mb-2 p-2" style="background:'+bg+'!important;color:'+color+'">'+text+'</a></div>');
+    }
+    $("#linkcontent").append(html);   
 }
-function fnspotify(el, content = null){
+function fnspotify(el, content = null, did = null){
     let regex = /^https:\/\/open.spotify.com\/track\/([a-zA-Z0-9]+)(.*)$/i;
 
     if(content){
@@ -1138,24 +1442,31 @@ function fnspotify(el, content = null){
         ellink.val('');
     }
     
-    let did = (Math.random() + 1).toString(36).substring(2);
-    let html = '<div class="card p-2 shadow-none border position-relative sortable" data-id="'+did+'">'+
-                    '<a class="position-absolute top-0 end-0 me-2" data-trigger="removeCard" href=""><i class="fa fa-times-circle"></i></a>'+
-                    '<h5><i class="fa fa-align-justify handle mr-2"></i> '+el.parent(".collapse").data('name')+'</h5>'+
-                    '<div class="row mt-2">'+                           
-                        '<div class="col-md-6">'+
+    if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+    let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                  '<div class="d-flex align-items-center">'+
+                    '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                    '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                  '</div>'+
+                  '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                    '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                    '<div class="row mt-2" id="'+did+'Container">'+         
+                        '<div class="col-md-12">'+
                             '<div class="form-group">'+
-                                '<input type="hidden" name="data['+slug(link)+'][type]" value="spotify">'+
-                                '<input type="text" class="form-control p-2" name="data['+slug(link)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
+                                '<label class="form-label">'+biolang.link+'</label>'+          
+                                '<input type="hidden" name="data['+slug(did)+'][type]" value="spotify">'+
+                                '<input type="text" class="form-control p-2" name="data['+slug(did)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
                             '</div>'+
                         '</div>'+
                     '</div>'+
-                '</div>';   
-                
-        $('#content').append('<div class="item"><iframe id="'+did+'" class="rounded mb-2" src="'+link.replace('/track/', '/embed/track/')+'" width="100%" height="200"></iframe></div>');
-    return html;
+                  '</div>'+
+                '</div>';                 
+    $('#content').append('<div class="item"><iframe id="'+did+'" class="rounded mb-2" src="'+link.replace('/track/', '/embed/track/')+'" width="100%" height="200"></iframe></div>');
+    $("#linkcontent").append(html);   
 }
-function fnitunes(el, content = null){
+function fnitunes(el, content = null, did = null){
     let regex = /^https:\/\/music.apple.com\/(.*)/i;
     if(content){
         var link = content['link'];
@@ -1170,23 +1481,36 @@ function fnitunes(el, content = null){
         ellink.val('');
     }
 
-    let did = (Math.random() + 1).toString(36).substring(2);
-    let html = '<div class="card p-2 shadow-none border position-relative sortable" data-id="'+did+'">'+
-                    '<a class="position-absolute top-0 end-0 me-2" data-trigger="removeCard" href=""><i class="fa fa-times-circle"></i></a>'+
-                    '<h5><i class="fa fa-align-justify handle mr-2"></i> '+el.parent(".collapse").data('name')+'</h5>'+
-                    '<div class="row mt-2">'+                           
-                        '<div class="col-md-6">'+
-                            '<div class="form-group">'+
-                                '<input type="hidden" name="data['+slug(link)+'][type]" value="itunes">'+
-                                '<input type="text" class="form-control p-2" name="data['+slug(link)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
-                            '</div>'+
-                        '</div>'+
-                    '</div>'+
+    if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+    let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                  '<div class="d-flex align-items-center">'+
+                    '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                    '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                  '</div>'+
+                  '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                    '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                      '<div class="row mt-2" id="'+did+'Container">'+         
+                          '<div class="col-md-12">'+
+                              '<div class="form-group">'+
+                                  '<label class="form-label">'+biolang.link+'</label>'+
+                                  '<input type="hidden" name="data['+slug(did)+'][type]" value="itunes">'+
+                                  '<input type="text" class="form-control p-2" name="data['+slug(did)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
+                              '</div>'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>';
                 '</div>';
-        $('#content').append('<div class="item"><iframe id="'+did+'" class="rounded mb-2" src="'+link.replace('music.apple', 'embed.music.apple')+'" width="100%" height="200"></iframe></div>');
-    return html;
+    $('#content').append('<div class="item"><iframe id="'+did+'" class="rounded mb-2" src="'+link.replace('music.apple', 'embed.music.apple')+'" width="100%" height="200"></iframe></div>');
+    $("#linkcontent").append(html);   
 }
-function fnpaypal(el, content = null){
+function fnpaypal(el, content = null, did = null){
+
+    let bg = $('#buttoncolor').val();
+    let color = $('#buttontextcolor').val();
+    let style = $('#buttonstyle').val();
+
     if(content){
         var label = content['label'];
         var email = content['email'];
@@ -1208,40 +1532,61 @@ function fnpaypal(el, content = null){
         elamount.val('');
     }
     
-    let did = (Math.random() + 1).toString(36).substring(2);
-    let html = '<div class="card p-2 shadow-none border position-relative sortable" data-id="'+did+'">'+
-                    '<a class="position-absolute top-0 end-0 me-2" data-trigger="removeCard" href=""><i class="fa fa-times-circle"></i></a>'+
-                    '<h5><i class="fa fa-align-justify handle mr-2"></i> '+el.parent(".collapse").data('name')+'</h5>'+
-                    '<div class="row mt-2">'+                           
-                        '<div class="col-md-6">'+
-                            '<div class="form-group">'+
-                                '<input type="hidden" name="data['+slug(label)+'][type]" value="paypal">'+
-                                '<input type="text" class="form-control p-2" name="data['+slug(label)+'][label]" value="'+label+'">'+
-                            '</div>'+
-                        '</div>'+
-                        '<div class="col-md-6">'+
-                            '<div class="form-group">'+
-                                '<input type="text" class="form-control p-2" name="data['+slug(label)+'][email]" value="'+email+'">'+
-                            '</div>'+
-                        '</div>'+
+    if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+    let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                  '<div class="d-flex align-items-center">'+
+                    '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                    '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                  '</div>'+
+                  '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                      '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                      '<div class="" id="'+did+'Container">'+
+                      '<div class="row mt-2>'+         
+                          '<div class="col-md-6">'+
+                              '<div class="form-group">'+
+                                  '<label class="form-label">'+biolang.text+'</label>'+
+                                  '<input type="hidden" name="data['+slug(label)+'][type]" value="paypal">'+
+                                  '<input type="text" class="form-control p-2" name="data['+slug(label)+'][label]" value="'+label+'">'+
+                              '</div>'+
+                          '</div>'+
+                          '<div class="col-md-6">'+
+                              '<div class="form-group">'+
+                                  '<label class="form-label">'+biolang.email+'</label>'+
+                                  '<input type="text" class="form-control p-2" name="data['+slug(label)+'][email]" value="'+email+'">'+
+                              '</div>'+
+                          '</div>'+
+                      '</div>'+
+                      '<div class="row mt-2>'+
+                          '<div class="col-md-6">'+
+                              '<div class="form-group">'+
+                                  '<label class="form-label">'+biolang.amount+'</label>'+
+                                  '<input type="text" class="form-control p-2" name="data['+slug(label)+'][amount]" value="'+amount+'">'+
+                              '</div>'+
+                          '</div>'+
+                          '<div class="col-md-6">'+          
+                              '<div class="form-group">'+
+                                  '<label class="form-label">'+biolang.currency+'</label>'+
+                                  '<input type="text" class="form-control p-2" name="data['+slug(label)+'][currency]" value="'+currency+'">'+
+                              '</div>'+
+                          '</div>'+
+                      '</div>'+
                     '</div>'+
-                    '<div class="row mt-2">'+
-                        '<div class="col-md-6">'+
-                            '<div class="form-group">'+
-                                '<input type="text" class="form-control p-2" name="data['+slug(label)+'][amount]" value="'+amount+'">'+
-                            '</div>'+
-                        '</div>'+
-                        '<div class="col-md-6">'+                            
-                            '<div class="form-group">'+
-                                '<input type="text" class="form-control p-2" name="data['+slug(label)+'][currency]" value="'+currency+'">'+
-                            '</div>'+
-                        '</div>'+
-                    '</div>'+
-                '</div>';
-        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 btn-custom mb-2 p-2">'+label+'</a></div>');
-    return html;
+                  '</div>'+
+                '</div>';    
+    if(style == 'trec'){
+      $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn-border btn w-100 btn-custom btn-transparent btn-link rounded mb-2 p-2" style="background:transparent!important;border-color:'+bg+';color:'+color+';">'+label+'</a></div>');
+    } else if(style == 'tro') {
+      $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn-border btn w-100 btn-custom btn-transparent btn-link mb-2 p-2 rounded-pill" style="background:transparent!important;border-color:'+bg+';color:'+color+';">'+label+'</a></div>');      
+    } else if(style == 'rounded') {
+      $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 btn-custom btn-link mb-2 p-2 rounded-pill" style="background:'+bg+'!important;color:'+color+';">'+label+'</a></div>');
+    } else {
+      $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 rounded btn-custom btn-link mb-2 p-2" style="background:'+bg+'!important;color:'+color+'">'+label+'</a></div>');
+    }
+    $("#linkcontent").append(html);   
 }
-function fntiktok(el, content = null){
+function fntiktok(el, content = null, did = null){
     
     let regex = /^https?:\/\/(?:www|m)\.(?:tiktok.com)\/(.*)\/video\/(.*)/i;
 
@@ -1259,86 +1604,188 @@ function fntiktok(el, content = null){
         ellink.val('');
     }
     
-    let did = (Math.random() + 1).toString(36).substring(2);
-    let html = '<div class="card p-2 shadow-none border position-relative sortable" data-id="'+did+'">'+
-                    '<a class="position-absolute top-0 end-0 me-2" data-trigger="removeCard" href=""><i class="fa fa-times-circle"></i></a>'+
-                    '<h5><i class="fa fa-align-justify handle mr-2"></i> '+el.parent(".collapse").data('name')+'</h5>'+
-                    '<div class="row mt-2">'+                           
-                        '<div class="col-md-6">'+
+    if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+    let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                  '<div class="d-flex align-items-center">'+
+                    '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                    '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                  '</div>'+
+                  '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                    '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                    '<div class="row mt-2" id="'+did+'Container">'+         
+                        '<div class="col-md-12">'+
                             '<div class="form-group">'+
-                                '<input type="hidden" name="data['+slug(link)+'][type]" value="tiktok">'+
-                                '<input type="text" class="form-control p-2" name="data['+slug(link)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
+                                '<label class="form-label">'+biolang.link+'</label>'+
+                                '<input type="hidden" name="data['+slug(did)+'][type]" value="tiktok">'+
+                                '<input type="text" class="form-control p-2" name="data['+slug(did)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
                             '</div>'+
                         '</div>'+
                     '</div>'+
+                  '</div>'+
                 '</div>';
-        let id = link.match(regex);
-        $('#content').append('<div class="item"><div id="'+did+'"><blockquote class="tiktok-embed rounded" cite="'+link+'" data-video-id="'+id[2]+'" style="max-width: 605px;min-width: 325px;" > <section> </section> </blockquote> <script async src="https://www.tiktok.com/embed.js"></script></div></div>');
-    return html;
+    let id = link.match(regex);
+    $('#content').append('<div class="item"><div id="'+did+'"><blockquote class="tiktok-embed rounded" cite="'+link+'" data-video-id="'+id[2]+'" style="max-width: 605px;min-width: 325px;" > <section> </section> </blockquote> <script async src="https://www.tiktok.com/embed.js"></script></div></div>');
+    $("#linkcontent").append(html);   
 }
-function fnheading(el, content = null){
+
+function fnheading(el, content = null, did = null){
   if(content){    
       var text = content['text'];
       var type = content['format'];
-  } else {
-
-      let eltext = el.parent("#modal-heading").find('input[name=text]');
-      let eltype = el.parent("#modal-heading").find('input[name=type]:checked');
-          
-      var text = eltext.val();
-      var type = eltype.val();
-      eltext.val('');
-  }
-
-  let did = (Math.random() + 1).toString(36).substring(2);
-  let html = '<div class="card p-2 shadow-none border position-relative sortable" data-id="'+did+'">'+
-                  '<a class="position-absolute top-0 end-0 me-2" data-trigger="removeCard" href=""><i class="fa fa-times-circle"></i></a>'+
-                  '<h5><i class="fa fa-align-justify handle mr-2"></i> '+el.parent(".collapse").data('name')+'</h5>'+
-                  '<div class="row mt-2">'+
-                      '<div class="col-md-6">'+
-                          '<div class="form-group">'+
-                          '<input type="hidden" name="data['+slug(text)+'][type]" value="heading">'+
-                          '<input type="hidden" name="data['+slug(text)+'][format]" value="'+type+'">'+
-                              '<input class="form-control p-2" name="data['+slug(text)+'][text]" placeholder="e.g. some description here" value="'+text+'">'+
-                          '</div>'+
-                      '</div>'+
-                  '</div>'+
-              '</div>';
-
-          $('#content').append('<div class="item"><'+type+' id="'+did+'">'+text+'</'+type+'></div>');
-
-      return html;
-}
-
-function fndivider(el, content = null){
-  if(content){    
       var color = content['color'];
   } else {
 
+      let eltext = el.parent("#modal-heading").find('input[name=text]');
+      let eltype = el.parent("#modal-heading").find('select[name=type]');
+      let elcolor = el.parent("#modal-heading").find('input[name=color]');
+          
+      var text = eltext.val();
+      var type = eltype.val();
+      var color = elcolor.val();
+      eltext.val('');
+  }
+
+  if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+  }
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+    
+                      '<div class="col-md-6">'+
+                        '<div class="form-group">'+
+                          '<label class="form-label">'+biolang.style+'</label>'+
+                          '<input type="hidden" name="data['+slug(did)+'][type]" value="heading">'+
+                          '<select name="data['+slug(did)+'][format]" class="form-select mb-2 p-2">'+
+                            '<option value="h1" '+(type == 'h1' ? 'selected':'')+'>H1</option>'+
+                            '<option value="h2" '+(type == 'h2' ? 'selected':'')+'>H2</option>'+
+                            '<option value="h3" '+(type == 'h3' ? 'selected':'')+'>H3</option>'+
+                            '<option value="h4" '+(type == 'h4' ? 'selected':'')+'>H4</option>'+
+                            '<option value="h5" '+(type == 'h5' ? 'selected':'')+'>H5</option>'+
+                            '<option value="h6" '+(type == 'h6' ? 'selected':'')+'>H6</option>'+
+                          '</select>'+     
+                        '</div>'+
+                      '</div>'+            
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.text+'</label>'+
+                              '<input type="hidden" name="data['+slug(did)+'][type]" value="heading">'+           
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][text]" placeholder="e.g. Bio Page" value="'+text+'">'+
+                          '</div>'+
+                      '</div>'+
+                      '<div class="col-md-4">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.color+'</label><br>'+
+                              '<input type="color" data-trigger="color" name="data['+slug(did)+'][color]" value="'+color+'" class="form-control p-2">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+      $('#content').append('<div class="item"><'+type+' id="'+did+'" style="color:'+color+' !important">'+text+'</'+type+'></div>');
+      $("#linkcontent").append(html);    
+      $("[data-id="+did+"] [data-trigger=color]").spectrum({
+          color: color,
+          showInput: true,
+          preferredFormat: "hex",
+          move: function (color) { Color("#"+did, color, $(this)); },
+          hide: function (color) { Color("#"+did, color, $(this)); }    
+      });
+      $('[data-id='+did+'] select').change(function(){
+          $("#"+did).parent('.item').html('<'+$(this).val()+' id="'+did+'" style="color:'+$('[data-id='+did+'] input[type=color]').val()+' !important">'+text+'</'+$(this).val()+'>');
+      });
+      $(document).on('keyup', '[data-id='+did+'] input[type=text]', function(){
+          $("#"+did).text($(this).val());
+      });
+}
+
+function fndivider(el, content = null, did = null){
+  if(content){    
+      var color = content['color'];
+      var style = content['style'];
+      var height = content['height'];
+      
+  } else {
+
       let elcolor = el.parent("#modal-divider").find('input[name=color]');
+      let elstyle = el.parent("#modal-divider").find('select[name=type]');
+      let elheight = el.parent("#modal-divider").find('select[name=height]');
           
       var color = elcolor.val();
+      var style = elstyle.val();
+      var height = elheight.val();
       elcolor.val('');
   }
 
-  let did = (Math.random() + 1).toString(36).substring(2);
-  let html = '<div class="card p-2 shadow-none border position-relative sortable" data-id="'+did+'">'+
-                  '<a class="position-absolute top-0 end-0 me-2" data-trigger="removeCard" href=""><i class="fa fa-times-circle"></i></a>'+
-                  '<h5><i class="fa fa-align-justify handle mr-2"></i> '+el.parent(".collapse").data('name')+'</h5>'+
-                  '<div class="row mt-2">'+
-                      '<div class="col-md-6">'+      
-                        '<input type="hidden" name="data['+slug(did)+'][type]" value="divider">'+                    
-                        '<input type="hidden" name="data['+slug(did)+'][color]" value="'+color+'">'+
+  if(did === null){
+    did = (Math.random() + 1).toString(36).substring(2);
+  }
+
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+
+                      '<input type="hidden" name="data['+slug(did)+'][type]" value="divider">'+  
+                      '<div class="col-md-4">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.color+'</label><br>'+
+                              '<input type="color" data-trigger="color" name="data['+slug(did)+'][color]" value="'+color+'" class="form-control p-2">'+
+                              '</select>'+    
+                          '</div>'+
+                      '</div>'+
+                      '<div class="col-md-4">'+
+                          '<label class="form-label">'+biolang.height+'</label><br>'+
+                          '<div class="form-group">'+
+                              '<input type="number" min="1" max="10" name="data['+slug(did)+'][height]" value="'+height+'" data-trigger="height" class="form-control p-2">'+     
+                              '</select>'+    
+                          '</div>'+
+                      '</div>'+
+                      '<div class="col-md-4">'+
+                          '<label class="form-label">'+biolang.style+'</label><br>'+
+                          '<div class="form-group">'+
+                              '<select name="data['+slug(did)+'][style]" data-trigger="style" class="form-select mb-2 p-2">'+
+                                '<option value="solid" '+(style == 'solid' ? 'selected':'')+'>'+biolang.solid+'</option>'+
+                                '<option value="dotted" '+(style == 'dotted' ? 'selected':'')+'>'+biolang.dotted+'</option>'+        
+                                '<option value="dashed" '+(style == 'dashed' ? 'selected':'')+'>'+biolang.dashed+'</option>'+        
+                              '</select>'+    
+                          '</div>'+
                       '</div>'+
                   '</div>'+
+                '</div>'+
               '</div>';
 
-          $('#content').append('<div class="item"><hr id="'+did+'" style="background-color:'+color+';height:2px"></div>');
-
-      return html;
+      $('#content').append('<div class="item"><hr id="'+did+'" style="background:transparent;border-top-style:'+style+';border-top-width:'+height+'px;border-top-color:'+color+'"></div>');
+      $("#linkcontent").append(html);    
+      $("[data-id="+did+"] input[data-trigger=color]").spectrum({
+          color: color,
+          showInput: true,
+          preferredFormat: "hex",
+          move: function (color) { borderColor("#"+did, color, $(this)); },
+          hide: function (color) { borderColor("#"+did, color, $(this)); }    
+      });
+      $("[data-id="+did+"] select[data-trigger=style]").change(function(){
+          $("hr#"+did).css('border-top-style', $(this).val());
+      });
+      $("[data-id="+did+"] input[data-trigger=height]").blur(function(){
+        $("hr#"+did).css('border-top-width', parseInt($(this).val())+'px');
+      });
 }
 
-function fnrss(el, content = null){
+function fnrss(el, content = null, did = null){
+    let bg = $('#buttoncolor').val();
+    let color = $('#buttontextcolor').val();
+    let style = $('#buttonstyle').val();
     let regex = /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i;
 
     if(content){
@@ -1354,49 +1801,816 @@ function fnrss(el, content = null){
         ellink.val('');      
     }
     
-    let did = (Math.random() + 1).toString(36).substring(2);
-    let html = '<div class="card p-2 shadow-none border position-relative sortable" data-id="'+did+'">'+
-                    '<a class="position-absolute top-0 end-0 me-2" data-trigger="removeCard" href=""><i class="fa fa-times-circle"></i></a>'+
-                    '<h5><i class="fa fa-align-justify handle mr-2"></i> '+el.parent(".collapse").data('name')+'</h5>'+
-                    '<div class="row mt-2">'+
+    if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+    let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                  '<div class="d-flex align-items-center">'+
+                    '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                    '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                  '</div>'+
+                  '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                    '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                    '<div class="row mt-2" id="'+did+'Container">'+
                         '<div class="col-md-12">'+
                             '<div class="form-group">'+
-                                '<input type="hidden" name="data['+slug(link)+'][type]" value="rss">'+
-                                '<input type="link" class="form-control p-2" name="data['+slug(link)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
+                                '<label class="form-label">'+biolang.link+'</label>'+
+                                '<input type="hidden" name="data['+slug(did)+'][type]" value="rss">'+
+                                '<input type="link" class="form-control p-2" name="data['+slug(did)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
                             '</div>'+
                         '</div>'+
                     '</div>'+
+                  '</div>'+
                 '</div>';
 
-            $('#content').append('<div class="item"><div class="d-block bg-white rounded text-center w-100 mb-2 p-3" id="'+did+'">RSS</div></div>');
-
-        return html;
+      $('#content').append('<div class="item"><div class="d-block rounded btn-custom text-center w-100 mb-2 p-3" id="'+did+'" style="background:'+bg+'!important;color:'+color+'">RSS</div></div>');
+      $("#linkcontent").append(html);   
 }
-function fnimage(el, content = null){
-  
-  let did = (Math.random() + 1).toString(36).substring(2);
-  let html = '<div class="card p-2 shadow-none border position-relative sortable" data-id="'+did+'">'+
-                  '<a class="position-absolute top-0 end-0 me-2" data-trigger="removeCard" href=""><i class="fa fa-times-circle"></i></a>'+
-                  '<h5><i class="fa fa-align-justify handle mr-2"></i> '+el.parent(".collapse").data('name')+'</h5>'+
-                  '<div class="row mt-2">'+
-                      '<div class="col-md-12">'+
+function fnimage(el, content = null, did = null){
+
+  if(content){
+    var link = content['link'];
+    var image = content['image'];
+  } else {            
+      var link = '';  
+      var image = '';
+  }
+
+  if(did == null){
+    did = (Math.random() + 1).toString(36).substring(2);
+  }
+
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+$("#modal-image").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+
+                      '<div class="col-md-6">'+
+                        '<div class="form-group">'+
+                            '<label class="form-label">'+biolang.link+'</label>'+
+                            '<input type="text" name="data['+slug(did)+'][link]" class="form-control p-2" placeholder="e.g. https://" value="'+link+'">'+
+                        '</div>'+
+                      '</div>'+
+                      '<div class="col-md-6">'+
                           '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.file+'</label>'+
                               '<input type="hidden" name="data['+slug(did)+'][type]" value="image">'+
-                              '<input type="file" class="form-control p-2" name="'+slug(did)+'" data-for="'+did+'" data-trigger="setpreview">'+
+                              '<input type="file" class="form-control p-2" name="'+slug(did)+'" data-for="'+did+'" accept=".jpg, .png" data-trigger="setpreview">'+
                           '</div>'+
                       '</div>'+
                   '</div>'+
+                '</div>'+
               '</div>';
 
-          $('#content').append('<div class="item"><div class="d-block rounded text-center w-100 mb-2" id="'+did+'">Image</div></div>');
+      $('#content').append('<div class="item"><div class="d-block rounded text-center w-100 mb-2" id="'+did+'">'+(image != '' ? '<img src="'+appurl+'/content/profiles/'+image+'" class="img-fluid rounded">' : 'Image')+'</div></div>');
 
-      return html;
+      $("#linkcontent").append(html);   
 }
+
+function fnnewsletter(el, content = null, did = null){
+
+  let bg = $('#buttoncolor').val();
+  let color = $('#buttontextcolor').val();
+  let style = $('#buttonstyle').val();
+
+  if(content){    
+      var text = content['text'];
+  } else {
+
+      let eltext = el.parent("#modal-newsletter").find('input[name=text]');
+
+      var text = eltext.val();
+      eltext.val('');
+  }  
+
+  if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.text+'</label>'+
+                              '<input type="hidden" name="data['+slug(did)+'][type]" value="newsletter">'+
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][text]" value="'+text+'">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+      if(style == 'trec'){
+        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn-border btn w-100 btn-custom btn-transparent btn-link rounded mb-2 p-2" style="background:transparent!important;border-color:'+bg+';color:'+color+';"><span>'+text+'</span> <i class="fa fa-chevron-down float-end mt-1"></i></a></div>');
+      } else if(style == 'tro') {
+        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn-border btn w-100 btn-custom btn-transparent btn-link mb-2 p-2 rounded-pill" style="background:transparent!important;border-color:'+bg+';color:'+color+';"><span>'+text+'</span> <i class="fa fa-chevron-down float-end mt-1"></i></a></div>');
+      } else if(style == 'rounded') {
+        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 btn-custom btn-link mb-2 p-2 rounded-pill" style="background:'+bg+'!important;color:'+color+';"><span>'+text+'</span> <i class="fa fa-chevron-down float-end mt-1"></i></a></div>');
+      } else {
+        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 rounded btn-custom btn-link mb-2 p-2" style="background:'+bg+'!important;color:'+color+'"><span>'+text+'</span> <i class="fa fa-chevron-down float-end mt-1"></i></a></div>');
+      }
+
+      $("#linkcontent").append(html); 
+
+      $(document).on('keyup', '[data-id='+did+'] input[type=text]', function(){
+        $("#"+did+' span').text($(this).val());
+      }); 
+}
+
+function fncontact(el, content = null, did = null){
+
+  let bg = $('#buttoncolor').val();
+  let color = $('#buttontextcolor').val();
+  let style = $('#buttonstyle').val();
+  
+  if(content){    
+      var text = content['text'];
+      var email = content['email'];
+  } else {
+
+      let eltext = el.parent("#modal-contact").find('input[name=text]');
+      let elemail = el.parent("#modal-contact").find('input[name=email]');
+
+      var text = eltext.val();
+      var email = elemail.val();
+      eltext.val('');
+  }  
+
+  if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.text+'</label>'+
+                              '<input type="text" class="form-control p-2 text" name="data['+slug(did)+'][text]" value="'+text+'">'+
+                          '</div>'+
+                      '</div>'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.email+'</label>'+
+                              '<input type="hidden" name="data['+slug(did)+'][type]" value="contact">'+
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][email]" value="'+email+'">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+      if(style == 'trec'){
+        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn-border btn w-100 btn-custom btn-transparent btn-link rounded mb-2 p-2" style="background:transparent!important;border-color:'+bg+';color:'+color+';"><span>'+text+'</span> <i class="fa fa-chevron-down float-end mt-1"></i></a></div>');
+      } else if(style == 'tro') {
+        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn-border btn w-100 btn-custom btn-transparent btn-link mb-2 p-2 rounded-pill" style="background:transparent!important;border-color:'+bg+';color:'+color+';"><span>'+text+'</span> <i class="fa fa-chevron-down float-end mt-1"></i></a></div>');
+      } else if(style == 'rounded') {
+        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 btn-custom btn-link mb-2 p-2 rounded-pill" style="background:'+bg+'!important;color:'+color+';"><span>'+text+'</span> <i class="fa fa-chevron-down float-end mt-1"></i></a></div>');
+      } else {
+        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 rounded btn-custom btn-link mb-2 p-2" style="background:'+bg+'!important;color:'+color+'"><span>'+text+'</span> <i class="fa fa-chevron-down float-end mt-1"></i></a></div>');
+      }
+      $("#linkcontent").append(html); 
+
+      $(document).on('keyup', '[data-id='+did+'] .text', function(){
+        $("#"+did+' span').text($(this).val());
+      }); 
+}
+function fnvcard(el, content = null, did = null){
+  let bg = $('#buttoncolor').val();
+  let color = $('#buttontextcolor').val();
+  let style = $('#buttonstyle').val();
+
+  if(content){    
+      var fname = content['fname'];
+      var lname = content['lname'];
+      var phone = content['phone'];
+      var email = content['email'];
+      var address = content['address'];
+      var city = content['city'];
+      var state = content['state'];
+      var country = content['country'];
+      var site = content['site'];
+  } else {
+
+
+      var elfname = el.parent("#modal-vcard").find('input[name=fname]');
+      var ellname = el.parent("#modal-vcard").find('input[name=lname]');
+      var elphone = el.parent("#modal-vcard").find('input[name=phone]');
+      var elemail = el.parent("#modal-vcard").find('input[name=email]');
+      var eladdress = el.parent("#modal-vcard").find('input[name=address]');
+      var elcity = el.parent("#modal-vcard").find('input[name=city]');
+      var elstate = el.parent("#modal-vcard").find('input[name=state]');
+      var elcountry = el.parent("#modal-vcard").find('input[name=country]');
+      var elsite = el.parent("#modal-vcard").find('input[name=site]');
+
+      var fname = elfname.val();
+      elfname.val('');
+      var lname = ellname.val();
+      ellname.val('');
+      var phone = elphone.val();
+      elphone.val('');
+      var email = elemail.val();
+      elemail.val('');
+      var address = eladdress.val();
+      eladdress.val('');
+      var city = elcity.val();
+      elcity.val('');
+      var state = elstate.val();
+      elstate.val('');
+      var country = elcountry.val();
+      elcountry.val('');
+      var site = elsite.val();
+      elsite.val('');
+  }  
+
+  if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.fname+'</label>'+
+                              '<input type="text" class="form-control p-2 text" name="data['+slug(did)+'][fname]" value="'+fname+'">'+
+                          '</div>'+
+                      '</div>'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.lname+'</label>'+
+                              '<input type="hidden" name="data['+slug(did)+'][type]" value="vcard">'+
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][lname]" value="'+lname+'">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                  '<div class="row mt-2">'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.email+'</label>'+
+                              '<input type="text" class="form-control p-2 text" name="data['+slug(did)+'][email]" value="'+email+'">'+
+                          '</div>'+
+                      '</div>'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.phone+'</label>'+            
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][phone]" value="'+phone+'">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                  '<div class="row mt-2">'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.site+'</label>'+
+                              '<input type="text" class="form-control p-2 text" name="data['+slug(did)+'][site]" value="'+site+'">'+
+                          '</div>'+
+                      '</div>'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.address+'</label>'+            
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][address]" value="'+address+'">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                  '<div class="row mt-2">'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.city+'</label>'+
+                              '<input type="text" class="form-control p-2 text" name="data['+slug(did)+'][city]" value="'+city+'">'+
+                          '</div>'+
+                      '</div>'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.state+'</label>'+            
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][state]" value="'+state+'">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                  '<div class="row mt-2">'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.country+'</label>'+
+                              '<input type="text" class="form-control p-2 text" name="data['+slug(did)+'][country]" value="'+country+'">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+      if(style == 'trec'){
+        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn-border btn w-100 btn-custom btn-transparent btn-link rounded mb-2 p-2" style="background:transparent!important;border-color:'+bg+';color:'+color+';">vCard</a></div>');
+      } else if(style == 'tro') {
+        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn-border btn w-100 btn-custom btn-transparent btn-link mb-2 p-2 rounded-pill" style="background:transparent!important;border-color:'+bg+';color:'+color+';">vCard</a></div>');
+      } else if(style == 'rounded') {
+        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 btn-custom btn-link mb-2 p-2 rounded-pill" style="background:'+bg+'!important;color:'+color+';">vCard</a></div>');
+      } else {
+        $('#content').append('<div class="item"><a href="#" id="'+did+'" class="btn w-100 rounded btn-custom btn-link mb-2 p-2 text-center" style="background:'+bg+'!important;color:'+color+'">vCard</a></div>');
+      }
+      $("#linkcontent").append(html); 
+}
+function fnproduct(el, content = null, did = null){  
+  if(content){    
+      var text = content['name'];
+      var description = content['description'];
+      var amount = content['amount'];
+      var link = content['link'];
+  } else {
+      var text = '';
+      var description = '';
+      var amount = '';
+      var link = '';
+  }
+  if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+    }
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+$("#modal-product").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+
+                      '<div class="col-md-12 mb-2">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.text+'</label>'+
+                              '<input type="text" class="form-control p-2 text" name="data['+slug(did)+'][name]" value="'+text+'">'+
+                          '</div>'+
+                      '</div>'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.description+'</label>'+
+                              '<input type="hidden" name="data['+slug(did)+'][type]" value="product">'+
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][description]" placeholder="e.g. $9.99"  value="'+description+'">'+
+                          '</div>'+
+                      '</div>'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.amount+'</label>'+
+                              '<input type="hidden" name="data['+slug(did)+'][type]" value="product">'+
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][amount]" placeholder="e.g. $9.99"  value="'+amount+'">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                  '<div class="row mt-2">'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.file+'</label>'+
+                              '<input type="file" class="form-control p-2 text" name="'+slug(did)+'" accept=".jpg, .png" value="">'+
+                          '</div>'+
+                      '</div>'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.link+'</label>'+            
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][link]" value="'+link+'" placeholder="http://">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+      $('#content').append('<div class="item mb-2" id="'+did+'"><div class="d-flex border border-dark p-1 rounded"><div class="p-5 bg-dark rounded me-2"></div><div class="text-start"><h3>'+text+'</h3><strong>'+amount+'</strong><br><p>'+description+'</p></div></div>');
+      $("#linkcontent").append(html); 
+}
+function fnhtml(el, content = null, did = null){
+
+  if(content){
+      var code = content['html'];
+  } else {
+      let elhtml = el.parent("#modal-html").find('textarea[name=code]');
+      var code = elhtml.val()
+      elhtml.val('');
+  }
+  
+  if(did == null){
+      did = (Math.random() + 1).toString(36).substring(2);
+  }
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+
+                      '<div class="col-md-12">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">HTML</label>'+
+                              '<input type="hidden" name="data['+slug(did)+'][type]" value="html">'+
+                              '<textarea class="form-control p-2" name="data['+slug(did)+'][html]" placeholder="e.g. some description here">'+code+'</textarea>'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+      $('#content').append('<div class="item"><div id="'+did+'">'+code+'</div></div>');
+      $("#linkcontent").append(html);  
+}
+
+function fnopensea(el, content = null, did = null){
+    
+  let regex = /^https?:\/\/(www.)?(opensea.io)\/assets\/(.*)\/(.*)\/(.*)/i;
+
+  if(content){
+      var link = content['link'];
+  } else {
+      let ellink = el.parent("#modal-opensea").find('input[name=link]');            
+      
+      if(!regex.test(ellink.val())){
+          ellink.after('<p class="alt-error text-danger mt-2">'+ellink.data('error')+'</p>');
+          return false;
+      }
+
+      var link = ellink.val();
+      ellink.val('');
+  }
+  
+  if(did == null){
+    did = (Math.random() + 1).toString(36).substring(2);
+  }
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+         
+                      '<div class="col-md-12">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.link+'</label>'+
+                              '<input type="hidden" name="data['+slug(did)+'][type]" value="opensea">'+
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+ 
+  let id = link.match(regex);
+
+  $('#content').append('<div class="item mb-2"><div id="'+did+'"><nft-card width="100%" contractAddress="'+id[4]+'" tokenId="'+id[5]+'"> </nft-card> <script src="https://unpkg.com/embeddable-nfts/dist/nft-card.min.js"></script></div></div>');
+  $("#linkcontent").append(html);   
+
+  $(document).on('blur', '#'+did+'Container input[type=text]', function(){
+
+    ellink = $(this);
+
+    if(!regex.test(ellink.val())){
+      ellink.after('<p class="alt-error text-danger mt-2">'+$('#modal-opensea input[name=link]').data('error')+'</p>');
+      return false;
+    }
+    $('#'+did).parent('.item').remove();
+    $('#'+did+'Container .alt-error').remove();
+
+    id = $(this).val().match(regex);
+
+    $('#content').append('<div class="item mb-2"><div id="'+did+'"><nft-card width="100%" contractAddress="'+id[4]+'" tokenId="'+id[5]+'"> </nft-card> <script src="https://unpkg.com/embeddable-nfts/dist/nft-card.min.js"></script></div></div>');
+    
+  });
+}
+
+function fntwitter(el, content = null, did = null){
+    
+  let regex = /^https?:\/\/(www.)?(twitter.com)\/(.*)/i;
+
+  if(content){
+      var link = content['link'];
+      var amount = content['amount'];
+  } else {
+      let ellink = el.parent("#modal-twitter").find('input[name=link]');            
+      let elamount = el.parent("#modal-twitter").find('input[name=amount]');            
+      
+      if(!regex.test(ellink.val())){
+          ellink.after('<p class="alt-error text-danger mt-2">'+ellink.data('error')+'</p>');
+          return false;
+      }
+
+      var link = ellink.val();
+      var amount = elamount.val();
+
+      if(!parseInt(amount)) amount = 1;
+      ellink.val('');
+  }
+  
+  if(did == null){
+    did = (Math.random() + 1).toString(36).substring(2);
+  }
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+         
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.link+'</label>'+
+                              '<input type="hidden" name="data['+slug(did)+'][type]" value="twitter">'+
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
+                          '</div>'+
+                      '</div>'+
+                      '<div class="col-md-6">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.amount+'</label>'+
+                              '<input type="number" class="form-control p-2" name="data['+slug(did)+'][amount]" value="'+amount+'" placeholder="e.g. 2">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+              
+  $('#content').append('<div class="item mb-2"><div id="'+did+'"><a class="twitter-timeline" data-chrome="nofooter" data-width="100%" data-tweet-limit="'+amount+'" href="'+link+'" >Tweets</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></div></div>');
+  $("#linkcontent").append(html);   
+
+  $(document).on('blur', '#'+did+'Container input[type=text]', function(){
+
+    ellink = $(this);
+
+    if(!regex.test(ellink.val())){
+      ellink.after('<p class="alt-error text-danger mt-2">'+$('#modal-twitter input[name=link]').data('error')+'</p>');
+      return false;
+    }
+
+    link = ellink.val();
+
+    amount = $('#'+did+'Container input[type=number]').val();
+
+    if(!parseInt(amount)) amount = 1;
+
+    $('#'+did).parent('.item').remove();
+    $('#'+did+'Container .alt-error').remove();
+
+    $('#content').append('<div class="item mb-2"><div id="'+did+'"><a class="twitter-timeline" data-chrome="nofooter" data-width="100%" data-tweet-limit="'+amount+'" href="'+link+'" >Tweets</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></div></div>');
+    
+  });
+
+  $(document).on('blur', '#'+did+'Container input[type=number]', function(){
+
+    ellink = $('#'+did+'Container input[type=text]');
+
+    if(!regex.test(ellink.val())){
+      ellink.after('<p class="alt-error text-danger mt-2">'+$('#modal-twitter input[name=link]').data('error')+'</p>');
+      return false;
+    }
+
+    link = ellink.val();
+
+    amount = $(this).val();
+
+    if(!parseInt(amount)) amount = 1;
+
+    $('#'+did).parent('.item').remove();
+    $('#'+did+'Container .alt-error').remove();
+
+    $('#content').append('<div class="item mb-2"><div id="'+did+'"><a class="twitter-timeline" data-chrome="nofooter" data-width="100%" data-tweet-limit="'+amount+'" href="'+link+'" >Tweets</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script></div></div>');
+    
+  });
+}
+
+function fnsoundcloud(el, content = null, did = null){
+    
+  let regex = /^https?:\/\/(www.)?(soundcloud.com)\/(.*)/i;
+
+  if(content){
+      var link = content['link'];
+  } else {
+      let ellink = el.parent("#modal-soundcloud").find('input[name=link]');            
+      
+      if(!regex.test(ellink.val())){
+          ellink.after('<p class="alt-error text-danger mt-2">'+ellink.data('error')+'</p>');
+          return false;
+      }
+
+      var link = ellink.val();
+      ellink.val('');
+  }
+  
+  if(did == null){
+    did = (Math.random() + 1).toString(36).substring(2);
+  }
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+         
+                      '<div class="col-md-12">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.link+'</label>'+
+                              '<input type="hidden" name="data['+slug(did)+'][type]" value="soundcloud">'+
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+
+  $('#content').append('<div class="item mb-2"><div id="'+did+'"><iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url='+encodeURIComponent(link)+'&color=%23ff5500&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true"></iframe></div></div>');
+  $("#linkcontent").append(html);   
+
+  $(document).on('blur', '#'+did+'Container input[type=text]', function(){
+
+    ellink = $(this);
+
+    if(!regex.test(ellink.val())){
+      ellink.after('<p class="alt-error text-danger mt-2">'+$('#modal-soundcloud input[name=link]').data('error')+'</p>');
+      return false;
+    }
+    link = $(this).val();
+
+    $('#'+did+'Container .alt-error').remove();
+
+    $('#'+did+' iframe').attr('src', 'https://w.soundcloud.com/player/?url='+encodeURIComponent(link)+'&color=%23ff5500auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true')
+    
+  });
+}
+
+function fnfacebook(el, content = null, did = null){  
+  
+  let regex = /^https?:\/\/(www.)?(((.*).)?facebook.com)\/(.*)/i;
+
+  if(content){
+      var link = content['link'];
+  } else {
+      let ellink = el.parent("#modal-facebook").find('input[name=link]');                
+      if(!regex.test(ellink.val())){
+        ellink.after('<p class="alt-error text-danger mt-2">'+ellink.data('error')+'</p>');
+        return false;
+    }
+      var link = ellink.val();
+      ellink.val('');
+  }
+  
+  if(did == null){
+    did = (Math.random() + 1).toString(36).substring(2);
+  }
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+         
+                      '<div class="col-md-12">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.link+'</label>'+
+                              '<input type="hidden" name="data['+slug(did)+'][type]" value="facebook">'+
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+
+  $('#content').append('<div class="item mb-2"><div id="'+did+'"><div id="fb-root"></div><script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v14.0" nonce="WaCixDC1"></script><div class="fb-post" data-href="'+link+'" data-show-text="true"></div></div></div>');
+  $("#linkcontent").append(html);
+
+  $(document).on('blur', '#'+did+'Container input[type=text]', function(){
+
+    ellink = $(this);
+
+    if(!regex.test(ellink.val())){
+        ellink.after('<p class="alt-error text-danger mt-2">'+$("#modal-facebook").find('input[name=link]').data('error')+'</p>');
+        return false;
+    }
+
+    link = $(this).val();
+
+    $('#'+did+'Container .alt-error').remove();
+
+    $('#'+did).html('<div id="fb-root"></div><script>FB.XFBML.parse()</script><script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v14.0" nonce="WaCixDC1"></script><div class="fb-post" data-href="'+link+'" data-show-text="true"></div>');
+    
+  });
+}
+
+function fninstagram(el, content = null, did = null){  
+  
+  let regex = /^https?:\/\/(www.)?(((.*).)?instagram.com)\/(.*)/i;
+
+  if(content){
+      var link = content['link'];
+  } else {
+      let ellink = el.parent("#modal-instagram").find('input[name=link]');                
+      if(!regex.test(ellink.val())){
+        ellink.after('<p class="alt-error text-danger mt-2">'+ellink.data('error')+'</p>');
+        return false;
+    }
+      var link = ellink.val();
+      ellink.val('');
+  }
+  
+  if(did == null){
+    did = (Math.random() + 1).toString(36).substring(2);
+  }
+  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+                '<div class="d-flex align-items-center">'+
+                  '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+  
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="'+did+'Container">'+         
+                      '<div class="col-md-12">'+
+                          '<div class="form-group">'+
+                              '<label class="form-label">'+biolang.link+'</label>'+
+                              '<input type="hidden" name="data['+slug(did)+'][type]" value="instagram">'+
+                              '<input type="text" class="form-control p-2" name="data['+slug(did)+'][link]" value="'+link+'" placeholder="e.g. https://">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+
+  $('#content').append('<div class="item mb-2"><div id="'+did+'"><div class="inner"><blockquote class="instagram-media" data-instgrm-permalink="'+link+'" data-instgrm-version="14" style=" background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);"></blockquote></div> <script async src="//www.instagram.com/embed.js"></script></div></div>');
+  $("#linkcontent").append(html);
+
+  $(document).on('blur', '#'+did+'Container input[type=text]', function(){
+
+    ellink = $(this);
+
+    if(!regex.test(ellink.val())){
+        ellink.after('<p class="alt-error text-danger mt-2">'+$("#modal-instagram").find('input[name=link]').data('error')+'</p>');
+        return false;
+    }
+
+    link = $(this).val();
+
+    $('#'+did+'Container .alt-error').remove();
+
+    $('#'+did+' .inner').html('<blockquote class="instagram-media" data-instgrm-permalink="'+link+'" data-instgrm-version="14" style=" background:#FFF; border:0; border-radius:3px; box-shadow:0 0 1px 0 rgba(0,0,0,0.5),0 1px 10px 0 rgba(0,0,0,0.15); margin: 1px; max-width:540px; min-width:326px; padding:0; width:99.375%; width:-webkit-calc(100% - 2px); width:calc(100% - 2px);"></blockquote><script>window.instgrm.Embeds.process()</script>');
+    
+  });
+}
+
+function fntagline(el, content = null, did = null){
+
+  if(content){
+      var text = content['text'];
+  } else {
+      let eltext = el.parent("#modal-tagline").find('input[type=text]');
+      var text = eltext.val()
+      eltext.val('');
+  }
+  
+  if($('#preview #bio-tag').length > 0){
+      $('#modal-tagline input[type=text]').after('<p class="alt-error text-danger mt-2">'+$('#modal-tagline input[type=text]').data('error')+'</p>');
+      return false;
+  }
+
+  let html = '<div class="px-1 pt-1 border rounded widget mb-2" data-id="bio-tag">'+
+                '<div class="d-flex align-items-center">'+
+                  '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
+                '</div>'+
+                '<div class="card mt-2 mb-1 p-2 shadow border">'+
+                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<div class="row mt-2" id="bio-tagContainer">'+
+                      '<div class="col-md-12">'+
+                          '<div class="form-group">'+
+                              '<input type="hidden" name="data[bio-tag][type]" value="tagline">'+
+                              '<input type="text" class="form-control p-2" name="data[bio-tag][text]" value="'+text+'">'+
+                          '</div>'+
+                      '</div>'+
+                  '</div>'+
+                '</div>'+
+              '</div>';
+
+      $('#preview #bio-title').after('<div class="item"><div id="bio-tag"></div></div>');
+      $('#preview #bio-tag').text(text);
+      $("#linkcontent").append(html);  
+      $(document).on('blur', '#bio-tagContainer input[type=text]', function(){
+          $('#preview #bio-tag').text($(this).val());
+      });
+}
+
 function bioupdate(){
     for(bio in biodata){
         let callback = 'fn'+biodata[bio]['type'];
-        let html = window[callback]($('[data-type='+biodata[bio]['type']+']'), biodata[bio]);
-        $("#linkcontent").append(html);
+        window[callback]($('[data-type='+biodata[bio]['type']+']'), biodata[bio], bio);
     }
 }
 
@@ -1416,5 +2630,5 @@ function slug(str) {
         .replace(/\s+/g, '-')
         .replace(/-+/g, '-');
 
-    return "B"+str;
+    return str
 }

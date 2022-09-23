@@ -138,7 +138,7 @@ function charts(url){
                     fill: true,
                     tension: 0.3,
                     backgroundColor: gradient,
-                    borderColor: '#1A237E',
+                    borderColor: '#008aff',
                     data: datay
                 }]
             },

@@ -299,8 +299,10 @@ var Pricing = (function() {
                 $(this).data('pricing-value', old_price);
 				let e = $(this).parents('.card').find('a.checkout');
 				let link = e.attr('href').split('/');
-				link.pop();
-				e.attr('href', link.join('/')+'/'+a);
+				if(link != "#"){
+					link.pop();
+					e.attr('href', link.join('/')+'/'+a);
+				}
             });
         }
 	}
@@ -353,7 +355,7 @@ var ScrollTo = (function() {
 
         // Animate scroll to the selected section
         $('html, body').stop(true, true).animate(options, 300);
-
+		window.location.hash = $el;
         event.preventDefault();
 	}
 
@@ -421,4 +423,27 @@ if(typeof cookieconsent == "object"){
         "href": lang.cookielink
       }
     });    
-  }
+}
+
+$(document).ready(()=>{
+	let typingTimer;               
+
+	$(document).on('keyup', '[data-trigger=faqsearchbox]', () => {
+		clearTimeout(typingTimer);
+		typingTimer = setTimeout(livesearch, 500);
+	});
+});
+
+function livesearch() {
+
+    let query = $("[data-trigger=faqsearchbox]").val();
+
+    $('.accordion').each(function(){
+        if($(this).text().toLowerCase().includes(query.toLowerCase())) {
+            $(this).removeClass('d-none');
+        }else{
+            $(this).addClass('d-none');
+        }
+    });
+}
+  

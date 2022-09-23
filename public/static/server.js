@@ -111,11 +111,11 @@ $(document).ready(function(){
             processData: false,
             contentType: false,
             beforeSend: function(){                
-                form.find('button[type=submit]').html('<div class="preloader"><div class="spinner-border spinner-border-sm text-white" role="status"><span class="sr-only">Loading...</span></div></div>');
+                form.find('button[type=submit]').html('<div class="preloader"><div class="spinner-border spinner-border-sm text-white" role="status"><span class="sr-only">Loading...</span></div></div>').attr('disabled', 'disabled');
             },
             complete: function(){
                 $('.preloader').remove();
-                form.find('button[type=submit]').text(text);
+                form.find('button[type=submit]').text(text).removeAttr('disabled');
             },
             success: function(response){
                 if(response.error){
@@ -130,7 +130,7 @@ $(document).ready(function(){
                 }
 
                 if($('#output-result').length > 0){
-                    $('#output-result #qr-result').html('<img src="'+shorturl+'/qr" width="100" class="rounded">');
+                    $('#output-result #qr-result').html('<span class="p-2 bg-light border border-success d-inline-block rounded"><img src="'+shorturl+'/qr" width="100" class="rounded"></span>');
                     $('#output-result').removeClass('d-none');
                 }
 
@@ -138,7 +138,7 @@ $(document).ready(function(){
                     triggerShortModal(shorturl);
                     refreshlinks();
                     $("#advancedOptions").removeClass('show');
-                    form.find('input,textarea,select').val('');
+                    form.find('input,textarea').val('');
                 } else {
                     url.val(shorturl);
 
@@ -149,7 +149,7 @@ $(document).ready(function(){
                     new ClipboardJS('[data-trigger=shorten-form] [type=button]').on('success', function(){
                         form.find("[type=submit]").removeClass('d-none');
                         form.find("[type=button]").addClass('d-none');
-                        form.find('input,textarea,select').val('');
+                        form.find('input,textarea').val('');
                     }); 
                     
                 }
@@ -202,7 +202,7 @@ $(document).ready(function(){
                     return $.notify({message: response.message},{type: 'danger',placement: {from: "bottom",align: "right"}});
                 }
                 $.notify({message: response.message},{type: 'success',placement: {from: "bottom",align: "right"}});
-                refreshlinks();
+                refreshlinks(ids);
                 feather.replace();
             }
         });   
@@ -221,25 +221,49 @@ $(document).ready(function(){
               }
             }
         }); 
-    })
+    });
+    $('#payment-form').submit(function(){
+        $(this).find('button[type=submit]').attr('disabled','disabled').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
+    });
+    $('[data-blockid]').click(function(e){
+        e.preventDefault();
+        let id = $(this).data('blockid');
+        let href = $(this).attr('href');
+        $.ajax({
+            type: "POST",
+            url: window.location.href,
+            data: "action=clicked&blockid="+id,
+        }).then(function(){
+            window.location = href;
+        }); 
+    });
 });
 
-function applytax(){
-
-}
-
-function refreshlinks(){
+function refreshlinks(ids = null){
     
     if($("#link-holder").length < 1) return false;
 
-    $.ajax({
-        type: "GET",
-        url: $("#link-holder").data('refresh'),
-        success: function (response) {
-          $("#link-holder").html(response);
-          feather.replace();
-        }
-    });
+    if(ids){
+        ids.forEach(function(item){
+            $.ajax({
+                type: "GET",
+                url: $("#link-holder").data('fetch')+'?id='+item,
+                success: function (response) {
+                  $("#link-"+item).html(response);
+                  feather.replace();
+                }
+            });
+        });
+    } else {
+        $.ajax({
+            type: "GET",
+            url: $("#link-holder").data('refresh'),
+            success: function (response) {
+              $("#link-holder").html(response);
+              feather.replace();
+            }
+        });
+    }
 }
 
 function triggerShortModal(shorturl){

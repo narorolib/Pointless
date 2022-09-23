@@ -52,6 +52,16 @@ $(document).ready(function(){
 			$('[data-trigger=darkmode]').removeClass('d-none');
 	});
 
+	$('[data-trigger=viewnews').click(function(e){
+		e.preventDefault();
+		let hash = $(this).data('hash');
+		const d = new Date();
+			d.setTime(d.getTime() + (30*24*60*60*1000));
+			let expires = "expires="+ d.toUTCString();
+			document.cookie = 'notification' + "="+hash+";" + expires + ";path=/";
+			$(this).find('.indicator').fadeOut();
+	});
+
 	initautocomplete();
 
 	// SelectJS
@@ -131,17 +141,34 @@ $(document).ready(function(){
 		let content = $(this).data('content');
 		$(target).find('form').attr('action', $(this).attr('href'));
 		for(input in content){
-			$(target).find('#'+input).val(content[input]);
+			
+			if($(target).find('#'+input).attr('type') == 'color'){
+				
+				$(target).find('#'+input).val(content[input]);
+
+				$('[data-trigger="colorpicker"]').spectrum({
+					color: content[input],
+					showInput: true,
+					preferredFormat: "hex"
+				});				
+
+			}else if($(target).find('#'+input).attr('type') == 'checkbox'){
+				if(content[input] == '1'){
+					$(target).find('#'+input).attr('checked', true);
+				}
+			} else {
+				$(target).find('#'+input).val(content[input]);
+			}
 		}
 	});		
-	$('[data-trigger=checkall]').on('click', function() {		
+	$('[data-trigger=checkall]').on('click', function() {
 		if($(this).prop('checked')){
 		  $('[data-dynamic]').prop('checked', true);
 		}else{
 		  $('[data-dynamic]').prop('checked', false);
 		}    
 	}); 
-	$('[data-trigger=options] a[data-trigger=submitchecked]').click(function(e){
+	$('a[data-trigger=submitchecked]').click(function(e){
 		e.preventDefault();
 		$('[data-trigger=options]').attr('action', $(this).attr('href'));
 		let ids = [];
@@ -419,6 +446,7 @@ $(document).ready(function(){
 		let parent = $(this).data('bs-parent')
 		$(parent).find('.collapse.show').collapse('hide');
 		$(this).parents('.btn-group').find('.active').removeClass('active');
+		$(this).parents('.dropdown-nav').find('.active').removeClass('active');
 		$(this).parents('.list-group').find('.active').removeClass('active');
 		$(this).parents('.nav-pills').find('.active').removeClass('active');
 		$(this).addClass('active');
@@ -473,6 +501,37 @@ $(document).ready(function(){
 		  	$('[data-dynamic]').prop('checked', false);
 		}
 	}); 
+
+	$("[data-trigger=filterlanguage]").click(function(e){
+		e.preventDefault();
+		let type = $(this).data('type');
+
+		if(type == "all"){
+			$('.strings').removeClass('d-none');
+		}
+
+		if(type == "translated"){
+			$('.strings').addClass('d-none');
+			$('.strings:not(.is-empty)').removeClass('d-none');
+		}
+
+		if(type == "untranslated"){
+			$('.strings').addClass('d-none');
+			$('.strings.is-empty').removeClass('d-none');
+		}
+
+		$("[data-trigger=filterlanguage]").removeClass('active');
+		$(this).addClass('active');
+	});
+	if($('[data-trigger="colorpicker"]').length > 0){
+		$('[data-trigger="colorpicker"]').spectrum({
+			showInput: true,
+			preferredFormat: "hex"
+		});
+	}
+	$('[data-toggle=addtochannel]').click(function(){
+		$('input[name=channelids]').val('['+$(this).data('id')+']');
+	});
 });
 window.redirect = function(e){
 	window.location = "?"+e.data('name')+"="+e.val();
