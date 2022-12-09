@@ -289,21 +289,22 @@ var Pricing = (function() {
             b = $this.parents('.pricing-container'),
             c = $('.'+b.attr('class')+' [data-pricing-'+a+']');
 
-        if(!$this.hasClass('active')) {
-            $('.'+b.attr('class')+' button[data-pricing]').removeClass('active');
-            $this.addClass('active');
+        if(!$this.hasClass('btn-primary')) {
+            $('.'+b.attr('class')+' button[data-pricing]').removeClass('btn-primary').addClass('btn-light');
+            $this.removeClass('btn-light').addClass('btn-primary');
             c.each(function() {
                 var new_price = $(this).data('pricing-'+a);
                 var old_price = $(this).find('span.price').text();
                 $(this).find('span.price').text(new_price);
                 $(this).data('pricing-value', old_price);
-				let e = $(this).parents('.card').find('a.checkout');
-				let link = e.attr('href').split('/');
+            });
+			$('a.checkout').each(function(){
+				let link = $(this).attr('href').split('/');
 				if(link != "#"){
 					link.pop();
-					e.attr('href', link.join('/')+'/'+a);
+					$(this).attr('href', link.join('/')+'/'+a);
 				}
-            });
+			})
         }
 	}
 

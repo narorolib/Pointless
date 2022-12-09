@@ -275,7 +275,7 @@ function triggerShortModal(shorturl){
     $('#successModal ul li').filter(':nth-child(2)').find('a').attr('href', shorturl+'/qr/download/svg/1000');
     $('#successModal #modal-share a').each(function(){
         let href = $(this).attr('href');
-        $(this).attr('href', href.replace('--url--', encodeURI(shorturl)));
+        $(this).attr('href', $(this).data('href')+encodeURI(shorturl));
     })
 
     new ClipboardJS('#successModal .copy', {

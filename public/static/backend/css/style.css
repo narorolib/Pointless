@@ -61,6 +61,7 @@
     border: 0 solid transparent;
     border-radius: .375rem;
     background-color: transparent;
+    margin-bottom: 10px;
 }
 .bootstrap-tagsinput input
 {
@@ -133,6 +134,9 @@
     border-radius: .375rem;
     background: #008aff;
     box-shadow: 0 1px 2px rgba(31, 45, 61, .25);
+}
+body.dark .bootstrap-tagsinput input{
+    color: #fff;
 }
 @media (prefers-reduced-motion: reduce)
 {
@@ -697,6 +701,13 @@ body.dark {
     color: #fff;
     background: #1a2127;
 }
+body.dark input[type=file]::file-selector-button{
+    background-color: #4e5e71;
+    color: #aec0d6;
+}
+body.dark input[type=file]::file-selector-button:hover{
+    background-color: #6a788a;
+}
 body.dark .form-control, body.dark .form-select {
     background-color: #1a2127;
     color: #fff;
@@ -712,14 +723,14 @@ body.dark .input-group-text {
     border-color: #4e5e71 !important;
 }
 body.dark .form-text{
-    color: #fff;
+    color: #aec0d6 !important;
 }
 body.dark footer{
     background: #1a2127; 
     color: #fff;
 }
 body.dark .text-muted{
-    color: #fff !important;
+    color: #aec0d6 !important;
 }
 body.dark .border{
     border-color: #4e5e71 !important;
@@ -878,4 +889,10 @@ body.dark .iconpicker .iconpicker-items{
 }
 body.dark .iconpicker .iconpicker-item:hover{
     background: #3e4955;
+}
+[data-scheme=dark]{
+    color-scheme: dark;
+}
+.input-group-navbar .form-select{
+    background-color: #e9edf1;
 }

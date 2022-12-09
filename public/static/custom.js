@@ -61,6 +61,10 @@ $(document).ready(function(){
 			document.cookie = 'notification' + "="+hash+";" + expires + ";path=/";
 			$(this).find('.indicator').fadeOut();
 	});
+	$('[data-toggle=buttons] label').click(function(){
+		$(this).parent('[data-toggle=buttons]').find('.border-secondary').removeClass('border-secondary');
+		$(this).addClass('border-secondary');
+	})
 
 	initautocomplete();
 
