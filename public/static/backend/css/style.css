@@ -1,3 +1,7 @@
+a:hover{
+    text-decoration: none;
+    opacity: 0.95;
+}
 .bb-grey{
     border-bottom: 1px solid #eff2f8 !important;
 }
@@ -645,14 +649,22 @@ button.close
 .input-select span.select2 span.select2-selection {
     border-radius: 0 0.25rem 0.25rem 0 !important;
     border-color: #ced4da !important;
-    height: 31px;
-    padding: 0;
+    height: 40px;
+    padding: 0.25rem;
 }
 .input-select span.select2 span.select2-selection.select2-selection--multiple{
     height: auto;
 }
-.input-select.rounded span.select2 span.select2-selection{
+.input-select .select2-container .select2-selection--single .select2-selection__arrow {
+    top: 6px;
+    right: 7px;
+}
+.input-select span.select2 span.select2-selection{
     border-radius: 0.25rem !important;
+}
+.select2-container .select2-search--dropdown .select2-search__field{
+    outline: none;
+    border-radius: 2px;
 }
 .autocomplete-suggestions {
     background: #fff;
@@ -896,3 +908,69 @@ body.dark .iconpicker .iconpicker-item:hover{
 .input-group-navbar .form-select{
     background-color: #e9edf1;
 }
+table.table-styled{
+    border-collapse: separate;
+    border-spacing: 0 10px;
+    width: 100%;
+}
+table.table-styled tr td{
+    background: #fff;
+    padding: 20px;
+}
+body.dark table.table-styled tr td{
+    background: #1a2127;
+}
+table.table-styled tr td:first-child{
+    border-radius: 0.3rem 0 0 0.3rem;
+}
+table.table-styled tr td:last-child{
+    border-radius: 0 0.3rem 0.3rem 0;
+}
+.note-toolbar {
+    background: transparent !important;
+    border-color: #a5b4c3 !important;
+}
+.note-editor.note-airframe .note-statusbar, .note-editor.note-frame .note-statusbar{
+    background: transparent !important;
+    border-color: #a5b4c3 !important;
+}
+.note-editor.note-frame {
+    border-color: #a5b4c3 !important;
+}
+body.dark .note-editor.note-frame {
+    border-color: #4e5e71 !important;
+}
+body.dark .note-editor.note-airframe .note-statusbar, body.dark .note-editor.note-frame .note-statusbar{
+    background: transparent !important;
+    border-color: #4e5e71 !important;
+    color: #fff !important;
+}
+body.dark .note-toolbar {
+    background: transparent !important;
+    border-color: #4e5e71 !important;
+}
+body.dark .note-btn{
+    background: #1a2127 !important;
+    border-color: #1a2127 !important;
+    color: #fff !important;
+}
+body.dark .note-editable{
+    color: #fff !important;
+}
+body.dark .note-modal-content {
+    color: #fff !important;
+    background: #222e3c !important;
+}
+.note-modal-content{
+    padding: 10px 0 !important;
+}
+.note-modal-header {
+    border: 0 !important;
+}
+body.dark .note-form-label{
+    color: #fff !important;
+}
+.avatar-xs{
+    height:20px;
+    width:20px;
+}    

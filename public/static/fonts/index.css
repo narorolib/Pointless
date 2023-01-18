@@ -1,0 +1,47 @@
+
+@import "Alegerya_Sans/font.css";
+@import "BioRhyme/font.css";
+@import "Changa/font.css";
+@import "Coda/font.css";
+@import "Cormorant/font.css";
+@import "DM_Sans/font.css";
+@import "Eczar/font.css";
+@import "Fira_Sans/font.css";
+@import "Inknut_Antiqua/font.css";
+@import "Inter/font.css";
+@import "Karla/font.css";
+@import "Montserrat/font.css";
+@import "Open_Sans/font.css";
+@import "Pacifico/font.css";
+@import "Poppins/font.css";
+@import "Press_Start_2P/font.css";
+@import "Proza_Libre/font.css";
+@import "Roboto/font.css";
+@import "Source_Sans_Pro/font.css";
+@import "Space_Mono/font.css";
+@import "Syne/font.css";
+@import "Work_Sans/font.css";
+.font-arial{
+	font-family: 'Arial';
+}
+.font-helvetica_neue{
+	font-family: 'Helvetica Neue';
+}
+.font-courier_new{
+	font-family: 'Courier New';
+}
+.font-times_new_roman{
+	font-family: 'Times New Roman';
+}
+.font-comic_sans_ms{
+	font-family: 'Comic Sans MS';
+}
+.font-verdana{
+	font-family: 'Verdana';
+}
+.font-impact{
+	font-family: 'Impact';
+}
+.font-tahoma{
+	font-family: 'Tahoma';
+}

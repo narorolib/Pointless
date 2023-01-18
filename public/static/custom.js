@@ -88,19 +88,36 @@ $(document).ready(function(){
 	let $dtpicker = $('[data-toggle=datetimepicker]');
 	if ($dtpicker.length) {
 		$dtpicker.each(function() {
-			$(this).datepicker({
-				autoPick: true,
-				format: "yyyy-mm-dd"
-			}); 
+			let el = $(this);
+			$(this).daterangepicker({
+				singleDatePicker: true,
+				showDropdowns: true,
+				autoApply: true,
+				autoUpdateInput: false,
+				timePicker: true,
+				locale: {
+					format: 'YYYY-MM-DD HH:ii'
+				}
+			}, function(s){
+				el.val(s.format('YYYY-MM-DD HH:mm'));
+			});
 		});
 	}	
 	let $dpicker = $('[data-toggle=datepicker]');
 	if ($dpicker.length) {
 		$dpicker.each(function() {
-			$(this).datepicker({
-				autoPick: false,
-				format: "yyyy-mm-dd"
-			}); 
+			let el = $(this)
+			$(this).daterangepicker({
+				singleDatePicker: true,
+				showDropdowns: true,
+				autoApply: true,
+				autoUpdateInput: false,
+				locale: {
+					format: 'YYYY-MM-DD'
+				}
+			}, function(s){
+				el.val(s.format('YYYY-MM-DD'));
+			});
 		});
 	}
 

@@ -404,26 +404,80 @@ var Select = (function() {
 
 })();
 
-if(typeof cookieconsent == "object"){
-    window.cookieconsent.initialise({
-      "palette": {
-        "popup": {
-          "background": "#2148b1"
-        },
-        "button": {
-          "background": "#fff",
-          "color": "#2148b1"
-        }
-      },
-      "theme": "classic",
-      "position": "bottom-right",
-      "content": {
-        "message": lang.cookie,
-        "dismiss": lang.cookieok,
-        "link": lang.cookiemore,
-        "href": lang.cookielink
-      }
-    });    
+if($('#cookieconsent-script').length > 0){
+	var cc = initCookieConsent();
+	cc.run({
+		current_lang : 'app',
+		autoclear_cookies : true,
+		cookie_name: 'cc_cookie',
+		cookie_expiration : 365,
+		page_scripts: true,
+		autorun: true,
+		languages: {
+			'app': {
+				consent_modal: {
+					title: lang.cookie.title,
+					description: lang.cookie.description + lang.cookie.button,
+					primary_btn: {
+						text: lang.cookie.accept_all,
+						role: 'accept_all'
+					},
+					secondary_btn: {
+						text: lang.cookie.accept_necessary,
+						role: 'accept_necessary'
+					}
+				},
+				settings_modal: {
+					title: lang.cookie.title,
+					save_settings_btn: lang.cookie.save,
+					accept_all_btn: lang.cookie.accept_all,
+					reject_all_btn: lang.cookie.accept_necessary,
+					close_btn_label: lang.cookie.close,
+					blocks: [
+						{
+							description: lang.cookie.description,
+						}, {
+							title: lang.cookie.necessary.title,
+							description: lang.cookie.necessary.description,
+							toggle: {
+								value: 'necessary',
+								enabled: true,
+								readonly: true
+							}
+						}, {
+							title: lang.cookie.analytics.title,
+							description: lang.cookie.analytics.description,
+							toggle: {
+								value: 'analytics',
+								enabled: false,
+								readonly: false
+							},
+						}, {
+							title: lang.cookie.ads.title,
+							description: lang.cookie.ads.description,
+							toggle: {
+								value: 'ads',
+								enabled: false,
+								readonly: false
+							}
+						},{
+							title: lang.cookie.extra.title,
+							description: lang.cookie.extra.description,
+							toggle: {
+								value: 'extra',
+								enabled: false,
+								readonly: false
+							}
+						}, {
+							title: lang.cookie.privacy.title,
+							description: lang.cookie.privacy.description,
+						}
+					]
+				}
+			}
+		}
+
+	});
 }
 
 $(document).ready(()=>{

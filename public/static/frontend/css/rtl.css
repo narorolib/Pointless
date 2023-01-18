@@ -1,0 +1,119 @@
+[dir=rtl] .card, [dir=rtl] .card .card-body{
+    text-align: right;
+}
+[dir=rtl] .input-group>.custom-select:not(:last-child), [dir=rtl] .input-group>.form-control:not(:last-child) {
+    border-top-left-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-top-right-radius: 0.5rem !important;
+    border-bottom-right-radius: 0.5rem !important;
+}
+
+[dir=rtl] .input-group>.input-group-append>.btn, [dir=rtl] .input-group>.input-group-append>.input-group-text, [dir=rtl] .input-group>.input-group-prepend:first-child>.btn:not(:first-child), [dir=rtl] .input-group>.input-group-prepend:first-child>.input-group-text:not(:first-child), [dir=rtl] .input-group>.input-group-prepend:not(:first-child)>.btn, [dir=rtl] .input-group>.input-group-prepend:not(:first-child)>.input-group-text {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+    border-top-left-radius: 0.5rem !important;
+    border-bottom-left-radius: 0.5rem !important;
+}
+[dir=rtl] body{
+    text-align: right;
+}
+[dir=rtl] .mr-3 {
+    margin-left: 1rem!important;
+    margin-right: 0;
+}
+[dir=rtl] .mr-4 {
+    margin-left: 1.5rem!important;
+    margin-right: 0;
+}
+[dir=rtl] .ml-lg-auto{
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+[dir=rtl] .dropdown-menu{
+    text-align: right !important;
+    direction: rtl !important;
+}
+[dir=rtl] .list-unstyled{
+    padding-right: 0 !important;
+}
+[dir=rtl] .ml-2{
+    margin-left: 0 !important;
+    margin-right: 0.5rem !important;
+}
+[dir=rtl] .sidebar.collapsed{
+    margin-left: 0 !important;
+    margin-right: -260px !important;
+}
+[dir=rtl] .navbar-align{
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+[dir=rtl] .navbar-nav{
+    direction: rtl !important;
+}
+[dir=rtl] .sidebar-nav{
+    padding-right: 0 !important;
+    padding-left: initial !important;
+    direction: rtl !important;
+}
+[dir=rtl] .float-end{
+    float: left !important;
+}
+[dir=rtl] *{
+    direction: rtl !important;
+}
+[dir=rtl] .ms-auto{
+    margin-right: auto !important;
+    margin-left: 0 !important;
+}
+[dir=rtl] .me-auto{
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+[dir=rtl] .ms-3{
+    margin-left: 0 !important;
+    margin-right: 1rem !important;
+}
+[dir=rtl] .me-3{
+    margin-right: 0 !important;
+    margin-left: 1rem !important;
+}
+[dir=rtl] .modal-header .btn-close{
+    margin-right: auto !important;
+    margin-left: 0 !important;   
+}
+[dir=rtl] .form-select{
+    background-position: left 0.7rem center !important;
+}
+[dir=rtl] .border-start-0{
+    border-right: 0 !important;
+    border-left-width: 1px !important;
+}
+[dir=rtl] .ps-0{
+    padding-right: 0 !important;
+    padding-left: initial !important;
+}
+[dir=rtl] .input-group>:not(:first-child):not(.dropdown-menu):not(.valid-tooltip):not(.valid-feedback):not(.invalid-tooltip):not(.invalid-feedback){
+    margin-left: 0;
+    margin-right: -1px;
+    border-top-left-radius: 0.25rem;
+    border-bottom-left-radius: 0.25rem;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+[dir=rtl] .input-group.has-validation>.dropdown-toggle:nth-last-child(n+4), 
+[dir=rtl] .input-group.has-validation>:nth-last-child(n+3):not(.dropdown-toggle):not(.dropdown-menu), 
+[dir=rtl] .input-group:not(.has-validation)>.dropdown-toggle:nth-last-child(n+3), 
+[dir=rtl] .input-group:not(.has-validation)>:not(:last-child):not(.dropdown-toggle):not(.dropdown-menu){
+    border-top-right-radius: 0.25rem;
+    border-bottom-right-radius: 0.25rem;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+[dir=rtl] .text-start{
+    text-align: right !important;
+}
+[dir=rtl] pre {
+    direction: ltr !important;
+    text-align: left !important;
+}

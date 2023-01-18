@@ -741,23 +741,23 @@ $(document).ready(function(){
     })
   });
   $('[data-trigger=bgtype]').click(function(){
+    $('[data-trigger=bgtype]').removeClass('border-secondary');
     let val = $(this).attr('href').replace('#', '');
     $('input[name=mode]').val(val);
     $('input[name=theme]').val('');
+    $('#singlecolor,#gradient,#image').removeAttr('style');
+    $(this).addClass('border-secondary');
     $('#preview .card').removeClass(function (i, classname) {
-      return (classname.match (/(^|\s)biobg_\S+/g) || []).join(' ');
+        return (classname.match (/(^|\s)biobg_\S+/g) || []).join(' ');
     });
   });
 
-  $('input#fonts').fontselect({
-    googleFonts: ['Alegreya+Sans', 'BioRhyme', 'Changa', 'Coda', 'Cormorant', 'DM+Sans', 'Eczar', 'Fira+Sans', 'Inkut+Antiqua','Poppins','Karla','Montserrat','Proza+Libre','Open+Sans', 'Inter', 'Pacifico', 'Press+Start+2P', 'Roboto', 'Source+Sans+Pro', 'Space+Mono', 'Syne', 'Work+Sans'],
-  }).on('change', function(){
-    var font = this.value.replace(/\+/g, ' ');
-    font = font.split(':');
-    var fontFamily = font[0];
-    var fontWeight = font[1] || 400;
-    $('#preview').css({fontFamily:"'"+fontFamily+"'", fontWeight:fontWeight});
- });
+  $('[data-trigger=choosefont]').on('click', function(){
+      var font = $(this).find('input[type=radio]').val().replace(/\+/g, ' ');
+      $('[data-trigger=choosefont]').removeClass('border-secondary');
+      $(this).addClass('border-secondary');
+      $('#preview').css({fontFamily:"'"+font+"'"});
+  });
 
   $('#linkcontent').sortable({
       containerSelector: "#linkcontent",
@@ -768,6 +768,7 @@ $(document).ready(function(){
         if (!event.target.nodeName.match(/^(input|select|textarea)$/i)) {
           event.preventDefault()
           before = $item.index();
+          $item.fadeOut();
           return true
         }
       },
@@ -785,12 +786,13 @@ $(document).ready(function(){
               lebefore.before(lafter);
 
           var text = $item.find('textarea').attr('id');
-          if (typeof text != 'undefined') {
-              CKEDITOR.instances[text].destroy();
-              CKEDITOR.replace(text, {
-                height: 100
-              });
-          }
+          $item.fadeIn();
+          // if (typeof text != 'undefined') {
+          //     CKEDITOR.instances[text].destroy();
+          //     CKEDITOR.replace(text, {
+          //       height: 100
+          //     });
+          // }
       }
   });
 
@@ -963,9 +965,6 @@ $(document).ready(function(){
       if(valid == false) return false;
       let data = new FormData($(this)[0]);
       let text = $(this).find('button[type=submit]').text();
-      for(var instanceName in CKEDITOR.instances)
-        CKEDITOR.instances[instanceName].updateElement();
-
       $.ajax({
           type: 'POST',
           url: action,
@@ -1079,6 +1078,7 @@ $('#preview .card').removeClass(function (i, classname) {
     return (classname.match (/(^|\s)biobg_\S+/g) || []).join(' ');
 });
 $("#preview .card").addClass(classname);
+$("#preview .card").css('background', 'transparent');
 
 $("#buttontextcolor").spectrum({
     color: buttontextcolor,
@@ -1170,25 +1170,22 @@ function fntext(el, content = null, did = null){
   if(content){
       var text = content['text'];
   } else {
-      let eltext = el.parent("#modal-text").find('textarea[name=content]');
-      var text = texteditor.getData();
-      eltext.val('');
+      var text = '';
   }
 
   if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
   }
-  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+  let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
                 '<div class="d-flex align-items-center">'+
                   '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                   '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
                 '</div>'+
                 '<div class="card mt-2 mb-1 p-2 shadow border">'+
-                  '<h5><span class="align-top">'+el.parent(".collapse").data('name')+'</span></h5>'+
+                  '<h5><span class="align-top">'+$("#modal-text").data('name')+'</span></h5>'+
                   '<div class="row mt-2" id="'+did+'Container">'+
                       '<div class="col-md-12">'+
                           '<div class="form-group">'+
-                              '<label class="form-label">'+biolang.text+'</label>'+
                               '<input type="hidden" name="data['+slug(did)+'][type]" value="text">'+
                               '<textarea id="'+did+'_editor" class="form-control p-2" name="data['+slug(did)+'][text]" placeholder="e.g. some description here">'+text+'</textarea>'+
                           '</div>'+
@@ -1197,10 +1194,17 @@ function fntext(el, content = null, did = null){
                 '</div>';
               '</div>';
 
-          $('#content').append('<div class="item"><p id="'+did+'">'+text+'</p></div>');
+          $('#content').append('<div class="item"><div id="'+did+'">'+text+'</div></div>');
           $("#linkcontent").append(html);
-          CKEDITOR.replace(did+'_editor', {
-            height: 100
+          $('#'+did+'_editor').summernote({
+              toolbar: [
+                ['style', ['bold', 'italic', 'underline', 'clear']],
+                ['para', ['link','ul', 'ol']],
+              ],
+              height: 100
+          });
+          $("#"+did+"Container .note-editable").blur(function(){
+              $("#"+did).html($('#'+did+'_editor').summernote('code'));
           });
 }
 function fnlink(el, content = null, did = null){
@@ -1239,7 +1243,7 @@ function fnlink(el, content = null, did = null){
   if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
   }
-  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+  let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
                 '<div class="d-flex align-items-center">'+
                   '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                   ''+(clicks !== null ? '<span class="text-muted"><i class="fa fa-mouse me-1"></i> '+clicks+' '+(urlid !== null ? '<a href="'+appurl+'/'+urlid+'/stats" class="ms-1 text-muted" target="_blank">('+biolang.stats+')</a>' : '')+' </span>' : '')+''+
@@ -1291,13 +1295,13 @@ function fnlink(el, content = null, did = null){
               '</div>';
           '</div>';
           if(style == 'trec'){
-            $('#content').append('<div class="item"><a href="#" id="'+did+'" class="animate_'+animation+' btn-border btn w-100 text-start btn-custom btn-transparent btn-link rounded mb-2 p-2 d-flex" style="background:transparent!important;border-color:'+bg+';color:'+color+';">'+(icon != '' ? '<i class="'+icon+'" style="font-size:15px"></i>' : '')+' <span class="align-top ms-auto me-auto">'+text+'</span></a></div>');
+            $('#content').append('<div class="item"><a href="#" id="'+did+'" class="position-relative animate_'+animation+' btn-border btn w-100 text-start btn-custom btn-transparent btn-link rounded mb-2 p-2 d-flex" style="background:transparent!important;border-color:'+bg+';color:'+color+';">'+(icon != '' ? '<i class="position-absolute ms-2 start-0 '+icon+'" style="font-size:15px"></i>' : '')+' <span class="align-top ms-auto me-auto">'+text+'</span></a></div>');
           } else if(style == 'tro') {
-            $('#content').append('<div class="item"><a href="#" id="'+did+'" class="animate_'+animation+' btn-border btn w-100 text-start btn-custom btn-transparent btn-link mb-2 p-2 d-flex rounded-pill" style="background:transparent!important;border-color:'+bg+';color:'+color+';">'+(icon != '' ? '<i class="'+icon+'" style="font-size:15px"></i>' : '')+' <span class="align-top ms-auto me-auto">'+text+'</span></a></div>');
+            $('#content').append('<div class="item"><a href="#" id="'+did+'" class="position-relative animate_'+animation+' btn-border btn w-100 text-start btn-custom btn-transparent btn-link mb-2 p-2 d-flex rounded-pill" style="background:transparent!important;border-color:'+bg+';color:'+color+';">'+(icon != '' ? '<i class="position-absolute ms-2 start-0 '+icon+'" style="font-size:15px"></i>' : '')+' <span class="align-top ms-auto me-auto">'+text+'</span></a></div>');
           } else if(style == 'rounded') {
-            $('#content').append('<div class="item"><a href="#" id="'+did+'" class="animate_'+animation+' btn w-100 text-start btn-custom btn-link mb-2 p-2 d-flex rounded-pill" style="background:'+bg+'!important;color:'+color+';">'+(icon != '' ? '<i class="'+icon+'" style="font-size:15px"></i>' : '')+' <span class="align-top ms-auto me-auto">'+text+'</span></a></div>');
+            $('#content').append('<div class="item"><a href="#" id="'+did+'" class="position-relative animate_'+animation+' btn w-100 text-start btn-custom btn-link mb-2 p-2 d-flex rounded-pill" style="background:'+bg+'!important;color:'+color+';">'+(icon != '' ? '<i class="position-absolute ms-2 start-0 '+icon+'" style="font-size:15px"></i>' : '')+' <span class="align-top ms-auto me-auto">'+text+'</span></a></div>');
           } else {
-            $('#content').append('<div class="item"><a href="#" id="'+did+'" class="animate_'+animation+' btn w-100 rounded text-start btn-custom btn-link mb-2 p-2 d-flex" style="background:'+bg+'!important;color:'+color+'">'+(icon != '' ? '<i class="'+icon+'" style="font-size:15px"></i>' : '')+' <span class="align-top ms-auto me-auto">'+text+'</span></a></div>');
+            $('#content').append('<div class="item"><a href="#" id="'+did+'" class="position-relative animate_'+animation+' btn w-100 rounded text-start btn-custom btn-link mb-2 p-2 d-flex" style="background:'+bg+'!important;color:'+color+'">'+(icon != '' ? '<i class="position-absolute ms-2 start-0 '+icon+'" style="font-size:15px"></i>' : '')+' <span class="align-top ms-auto me-auto">'+text+'</span></a></div>');
           }
 
           $("#linkcontent").append(html);
@@ -1315,7 +1319,7 @@ function fnlink(el, content = null, did = null){
           });
 
           $(document).on('blur iconpickerUpdated', '[data-id='+did+'] .icon', function(){
-            $("#"+did).html(($(this).val() != '' ? '<i class="'+$(this).val()+'" style="font-size:21px;"></i>' : '')+' <span class="align-top ms-auto me-auto">'+$('[data-id='+did+'] .text').val()+'</span>');
+            $("#"+did).html(($(this).val() != '' ? '<i class="position-absolute ms-2 start-0 '+$(this).val()+'" style="font-size:21px;"></i>' : '')+' <span class="align-top ms-auto me-auto">'+$('[data-id='+did+'] .text').val()+'</span>');
           });
 
           $('#'+did+'_icon').iconpicker();
@@ -1341,7 +1345,7 @@ function fnyoutube(el, content = null, did = null){
   if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
   }
-  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+  let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
                 '<div class="d-flex align-items-center">'+
                   '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                   '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -1390,7 +1394,7 @@ function fnwhatsapp(el, content = null, did = null){
   if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
   }
-  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+  let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
                 '<div class="d-flex align-items-center">'+
                   '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                   '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -1445,7 +1449,7 @@ function fnspotify(el, content = null, did = null){
   if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
   }
-  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+  let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
                 '<div class="d-flex align-items-center">'+
                   '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                   '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -1484,7 +1488,7 @@ function fnitunes(el, content = null, did = null){
   if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
   }
-  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+  let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
                 '<div class="d-flex align-items-center">'+
                   '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                   '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -1535,7 +1539,7 @@ function fnpaypal(el, content = null, did = null){
   if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
   }
-  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+  let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
                 '<div class="d-flex align-items-center">'+
                   '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                   '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -1607,7 +1611,7 @@ function fntiktok(el, content = null, did = null){
   if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
   }
-  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+  let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
                 '<div class="d-flex align-items-center">'+
                   '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                   '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -1650,7 +1654,7 @@ if(content){
 if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
 }
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -1728,7 +1732,7 @@ if(did === null){
   did = (Math.random() + 1).toString(36).substring(2);
 }
 
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -1804,7 +1808,7 @@ function fnrss(el, content = null, did = null){
   if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
   }
-  let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+  let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
                 '<div class="d-flex align-items-center">'+
                   '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                   '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -1840,7 +1844,7 @@ if(did == null){
   did = (Math.random() + 1).toString(36).substring(2);
 }
 
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -1889,7 +1893,7 @@ if(content){
 if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
   }
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -1946,7 +1950,7 @@ if(content){
 if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
   }
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -2051,7 +2055,7 @@ if(content){
 if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
   }
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -2181,7 +2185,7 @@ if(content){
 if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
 }
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -2227,7 +2231,7 @@ let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="
               '</div>'+
             '</div>';
 
-    $('#content').append('<div class="item mb-2" id="'+did+'"><div class="d-flex border border-dark p-1 rounded"><div class="p-5 bg-dark rounded me-2"></div><div class="text-start"><h3>'+text+'</h3><strong>'+amount+'</strong><br><p>'+description+'</p></div></div>');
+    $('#content').append('<div class="item mb-2"><div id="'+did+'" class="d-flex border border-dark p-1 rounded"><div class="p-5 bg-dark rounded me-2"></div><div class="text-start"><h3>'+text+'</h3><strong>'+amount+'</strong><br><p>'+description+'</p></div></div>');
     $("#linkcontent").append(html);
 }
 function fnhtml(el, content = null, did = null){
@@ -2243,7 +2247,7 @@ if(content){
 if(did == null){
     did = (Math.random() + 1).toString(36).substring(2);
 }
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -2287,7 +2291,7 @@ if(content){
 if(did == null){
   did = (Math.random() + 1).toString(36).substring(2);
 }
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -2356,7 +2360,7 @@ if(content){
 if(did == null){
   did = (Math.random() + 1).toString(36).substring(2);
 }
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -2450,7 +2454,7 @@ if(content){
 if(did == null){
   did = (Math.random() + 1).toString(36).substring(2);
 }
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -2509,7 +2513,7 @@ if(content){
 if(did == null){
   did = (Math.random() + 1).toString(36).substring(2);
 }
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
@@ -2569,7 +2573,7 @@ if(content){
 if(did == null){
   did = (Math.random() + 1).toString(36).substring(2);
 }
-let html = '<div class="px-1 pt-1 border rounded widget sortable mb-2" data-id="'+did+'">'+
+let html = '<div class="p-2 border rounded widget sortable mb-4" data-id="'+did+'">'+
               '<div class="d-flex align-items-center">'+
                 '<i class="fs-4 fa fa-align-justify handle me-4"></i>'+
                 '<a class="ms-auto fs-6 pt-3 pe-2 btn-close" data-bs-toggle="modal" data-bs-target="#removecard" data-trigger="removeCard" href=""></a>'+
